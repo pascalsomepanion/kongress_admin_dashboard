@@ -161,8 +161,8 @@ export default function RechnungenPage(){
               const isOpen=expanded===g.tnId
               const historie=getHistorie(g.buchungen)
               const hatOffeneOhneRechnung=g.buchungen.some(b=>!b.rechnungsnummer&&b.zahlungsstatus!=='storniert')
-              const alleRechNummern=Array.from(new Set(g.buchungen.map(b=>b.rechnungsnummer).filter(Boolean)))
-              const hatStorno=g.buchungen.some(b=>b.zahlungsstatus==='storniert')
+              const alleRechNummern=[...new Set(g.buchungen.map(b=>b.rechnungsnummer).filter(Boolean))]
+              const hatStorno=g.buchungen.some(b=>b.zahlungsstatus==='storniert'&&b.zahlungs_eingang_am)
               return(
                 <div key={g.tnId} className={i>0?'border-t border-gray-100':''}>
                   <div className={`flex items-center gap-4 px-4 py-3.5 cursor-pointer transition-all ${isOpen?'bg-[#FFF9E6]':'hover:bg-gray-50'}`} onClick={()=>setExpanded(isOpen?null:g.tnId)}>
@@ -200,7 +200,8 @@ export default function RechnungenPage(){
                               </div>
                               <div className="flex gap-1.5">
                                 {h.rNr&&<Btn size="sm" variant="outline" onClick={()=>loadPdf(g,h.rNr!)}>👁 Anzeigen</Btn>}
-                                {h.rNr&&<Btn size="sm" variant="outline" disabled={sending===h.rNr} onClick={async()=>{const html=buildHtml(g,h.rNr!,h.buchungen,'Damen und Herren',bezahlt);await sendEmail(g,h.rNr!,html)}}>{sending===h.rNr?'Sendet…':'📧 Senden'}</Btn>}
+                                {h.rNr&&bezahlt&&<Btn size="sm" variant="outline" disabled={sending===h.rNr} onClick={async()=>{const html=buildHtml(g,h.rNr!,h.buchungen,'Damen und Herren',bezahlt);await sendEmail(g,h.rNr!,html)}}>{sending===h.rNr?'Sendet…':'📧 Senden'}</Btn>}
+                                {h.rNr&&!bezahlt&&<span className="text-[10px] text-gray-400 italic">Senden erst nach Zahlungseingang</span>}
                                 {!h.rNr&&<Btn size="sm" onClick={()=>{setAnrede('Damen und Herren');setCreating({group:g,buchungen:h.buchungen});setPreviewMode('new')}}>📄 Rechnung erstellen</Btn>}
                               </div>
                             </div>

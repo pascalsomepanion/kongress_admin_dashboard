@@ -119,7 +119,7 @@ export default function AnmeldungPage() {
 
       await fetch('/api/send-confirmation', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: form.email.trim(), vorname: form.vorname, nachname: form.nachname, kongress_name: kongress.name, kongress_datum: formatDatum(kongress.datum_von, kongress.datum_bis), iban: kongress.iban, bic: kongress.bic, kontoinhaber: kongress.kontoinhaber, kontakt_email: kongress.kontakt_email, kurs_titel: Array.from(selected).map(id => kurse.find(k=>k.id===id)!.titel), gesamtbetrag }),
+        body: JSON.stringify({ email: form.email.trim(), vorname: form.vorname, nachname: form.nachname, oeak_nr: form.oeak_nr, ist_oegsmp_mitglied: form.ist_oegsmp_mitglied, kongress_name: kongress.name, kongress_jahr: kongress.jahr, kongress_datum: formatDatum(kongress.datum_von, kongress.datum_bis), kongress_start: new Date(kongress.datum_von).toLocaleDateString('de-AT', {weekday:'long',day:'numeric',month:'long',year:'numeric'})+', 15:00 Uhr', kongress_ende: new Date(kongress.datum_bis).toLocaleDateString('de-AT', {weekday:'long',day:'numeric',month:'long',year:'numeric'})+', 19:00 Uhr', iban: kongress.iban, bic: kongress.bic, kontoinhaber: kongress.kontoinhaber, kontakt_email: kongress.kontakt_email, fruehbucher_bis: formatDE(kongress.fruehbucher_bis), storno_kostenlos_bis: formatDE(kongress.storno_kostenlos_bis), storno_50_bis: formatDE(kongress.storno_50_bis), kurs_titel: Array.from(selected).map(id => kurse.find(k=>k.id===id)!.titel), gesamtbetrag }),
       })
       setStep('done'); window.scrollTo({top:0,behavior:'smooth'})
     } catch(e) {
@@ -139,16 +139,15 @@ export default function AnmeldungPage() {
     <main className="min-h-screen bg-[#F7F6F3]">
       {/* HERO */}
       <div className="bg-[#FFBF00] px-6 py-12 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.05]" style={{backgroundImage:'repeating-linear-gradient(45deg,#000 0,#000 1px,transparent 0,transparent 50%)',backgroundSize:'18px 18px'}}/>
+
         <div className="max-w-2xl mx-auto relative">
-          <p className="text-[10px] font-bold tracking-[.18em] uppercase text-black/50 mb-2">{kongress.name}</p>
-          <h1 className="text-3xl font-extrabold text-black mb-1">Anmeldung {kongress.jahr}</h1>
-          <p className="text-black/55 mb-6 text-sm">{kongress.ort}</p>
-          <div className="flex gap-2 flex-wrap">
-            {[`📅 ${formatDatum(kongress.datum_von, kongress.datum_bis)}`, 'ÖÄK-Diplom Sportmedizin'].map(p=>(
-              <span key={p} className="bg-black/10 text-black/65 text-xs font-medium px-3 py-1.5 rounded-full">{p}</span>
-            ))}
-          </div>
+          <p className="text-base font-semibold text-black/60 mb-1">Anmeldung zum</p>
+          <h1 className="text-3xl font-extrabold text-black mb-2">{kongress.name} {kongress.jahr}</h1>
+          <p className="text-black/70 text-base font-medium mb-1">{kongress.ort}</p>
+          <p className="text-black/55 text-sm">{new Date(kongress.datum_von).toLocaleDateString('de-AT')} – {new Date(kongress.datum_bis).toLocaleDateString('de-AT')}</p>
+        </div>
+      </div>
+
         </div>
       </div>
 

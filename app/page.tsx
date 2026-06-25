@@ -60,7 +60,7 @@ export default function AnmeldungPage() {
     if (next.has(kurs.id)) { next.delete(kurs.id); setKonflikt(''); setSelected(next); return }
     if (kurs.exklusiv_gruppe) {
       const clash = kurse.find(k => k.exklusiv_gruppe === kurs.exklusiv_gruppe && next.has(k.id))
-      if (clash) { setKonflikt(`„${kurs.titel}" und „${clash.titel}" können nicht gleichzeitig gebucht werden.`); return }
+      if (clash) { setKonflikt(`"${kurs.titel}" und "${clash.titel}" koennen nicht gleichzeitig gebucht werden.`); return }
     }
     getKonfliktIds(kurs).forEach(id => next.delete(id))
     setKonflikt(''); next.add(kurs.id); setSelected(next)
@@ -75,13 +75,13 @@ export default function AnmeldungPage() {
   function validate(): boolean {
     const errs: Errors = {}
     const req: [keyof FormData, string][] = [
-      ['vorname','Vorname fehlt'],['nachname','Nachname fehlt'],['strasse','Straße fehlt'],
+      ['vorname','Vorname fehlt'],['nachname','Nachname fehlt'],['strasse','Strasse fehlt'],
       ['hausnummer','Hausnummer fehlt'],['postleitzahl','PLZ fehlt'],['stadt','Stadt fehlt'],
-      ['land','Land fehlt'],['oeak_nr','ÖÄK-Nr. fehlt'],['email','E-Mail fehlt'],
+      ['land','Land fehlt'],['oeak_nr','OeAK-Nr. fehlt'],['email','E-Mail fehlt'],
     ]
     req.forEach(([f, msg]) => { if (!(form[f] as string).trim()) errs[f] = msg })
-    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Ungültige E-Mail-Adresse'
-    if (selected.size === 0) errs.kurse = 'Bitte mindestens einen Kurs auswählen'
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Ungueltige E-Mail-Adresse'
+    if (selected.size === 0) errs.kurse = 'Bitte mindestens einen Kurs auswaehlen'
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -119,7 +119,21 @@ export default function AnmeldungPage() {
 
       await fetch('/api/send-confirmation', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: form.email.trim(), vorname: form.vorname, nachname: form.nachname, oeak_nr: form.oeak_nr, ist_oegsmp_mitglied: form.ist_oegsmp_mitglied, kongress_name: kongress.name, kongress_jahr: kongress.jahr, kongress_datum: formatDatum(kongress.datum_von, kongress.datum_bis), kongress_start: new Date(kongress.datum_von).toLocaleDateString('de-AT', {weekday:'long',day:'numeric',month:'long',year:'numeric'})+', 15:00 Uhr', kongress_ende: new Date(kongress.datum_bis).toLocaleDateString('de-AT', {weekday:'long',day:'numeric',month:'long',year:'numeric'})+', 19:00 Uhr', iban: kongress.iban, bic: kongress.bic, kontoinhaber: kongress.kontoinhaber, kontakt_email: kongress.kontakt_email, fruehbucher_bis: formatDE(kongress.fruehbucher_bis), storno_kostenlos_bis: formatDE(kongress.storno_kostenlos_bis), storno_50_bis: formatDE(kongress.storno_50_bis), kurs_titel: Array.from(selected).map(id => kurse.find(k=>k.id===id)!.titel), gesamtbetrag }),
+        body: JSON.stringify({
+          email: form.email.trim(), vorname: form.vorname, nachname: form.nachname,
+          oeak_nr: form.oeak_nr, ist_oegsmp_mitglied: form.ist_oegsmp_mitglied,
+          kongress_name: kongress.name, kongress_jahr: kongress.jahr,
+          kongress_datum: formatDatum(kongress.datum_von, kongress.datum_bis),
+          kongress_start: new Date(kongress.datum_von).toLocaleDateString('de-AT', {weekday:'long',day:'numeric',month:'long',year:'numeric'})+', 15:00 Uhr',
+          kongress_ende: new Date(kongress.datum_bis).toLocaleDateString('de-AT', {weekday:'long',day:'numeric',month:'long',year:'numeric'})+', 19:00 Uhr',
+          iban: kongress.iban, bic: kongress.bic, kontoinhaber: kongress.kontoinhaber,
+          kontakt_email: kongress.kontakt_email,
+          fruehbucher_bis: formatDE(kongress.fruehbucher_bis),
+          storno_kostenlos_bis: formatDE(kongress.storno_kostenlos_bis),
+          storno_50_bis: formatDE(kongress.storno_50_bis),
+          kurs_titel: Array.from(selected).map(id => kurse.find(k=>k.id===id)!.titel),
+          gesamtbetrag,
+        }),
       })
       setStep('done'); window.scrollTo({top:0,behavior:'smooth'})
     } catch(e) {
@@ -127,7 +141,7 @@ export default function AnmeldungPage() {
     } finally { setSubmitLoading(false) }
   }
 
-  if (pageLoading) return <div className="min-h-screen bg-[#F7F6F3] flex items-center justify-center"><p className="text-gray-400 text-sm">Wird geladen…</p></div>
+  if (pageLoading) return <div className="min-h-screen bg-[#F7F6F3] flex items-center justify-center"><p className="text-gray-400 text-sm">Wird geladen...</p></div>
   if (!kongress) return <div className="min-h-screen bg-[#F7F6F3] flex items-center justify-center"><p className="text-gray-400 text-sm">Kein aktiver Kongress gefunden.</p></div>
 
   const fruehText = formatDE(kongress.fruehbucher_bis)
@@ -138,16 +152,12 @@ export default function AnmeldungPage() {
   return (
     <main className="min-h-screen bg-[#F7F6F3]">
       {/* HERO */}
-      <div className="bg-[#FFBF00] px-6 py-12 relative overflow-hidden">
-
-        <div className="max-w-2xl mx-auto relative">
-          <p className="text-base font-semibold text-black/60 mb-1">Anmeldung zum</p>
+      <div className="bg-[#FFBF00] px-6 py-12">
+        <div className="max-w-2xl mx-auto">
+          <p className="text-sm font-semibold text-black/60 mb-1">Anmeldung zum</p>
           <h1 className="text-3xl font-extrabold text-black mb-2">{kongress.name} {kongress.jahr}</h1>
           <p className="text-black/70 text-base font-medium mb-1">{kongress.ort}</p>
-          <p className="text-black/55 text-sm">{new Date(kongress.datum_von).toLocaleDateString('de-AT')} – {new Date(kongress.datum_bis).toLocaleDateString('de-AT')}</p>
-        </div>
-      </div>
-
+          <p className="text-black/55 text-sm">{new Date(kongress.datum_von).toLocaleDateString('de-AT')} - {new Date(kongress.datum_bis).toLocaleDateString('de-AT')}</p>
         </div>
       </div>
 
@@ -186,7 +196,7 @@ export default function AnmeldungPage() {
               <tr><td colSpan={4} className="pt-3 pb-1 text-[10px] font-bold uppercase tracking-wide text-gray-400">Blockkurse</td></tr>
               {blockKurse.map(k=>(
                 <tr key={k.id} className="border-b border-gray-50">
-                  <td className="py-2 text-gray-700 font-medium">{k.titel}{k.mitglied_fruehbucher_preis&&<span className="ml-1.5 text-[10px] text-blue-600 font-semibold bg-blue-50 px-1.5 py-0.5 rounded">ÖGSMP −€20</span>}</td>
+                  <td className="py-2 text-gray-700 font-medium">{k.titel}{k.mitglied_fruehbucher_preis&&<span className="ml-1.5 text-[10px] text-blue-600 font-semibold bg-blue-50 px-1.5 py-0.5 rounded">ÖGSMP -20</span>}</td>
                   <td className="py-2 text-right text-gray-400">{k.wochentag_datum}</td>
                   <td className="py-2 text-right font-semibold text-gray-800">€ {k.fruehbucher_preis}</td>
                   <td className="py-2 text-right font-semibold text-amber-700">€ {k.spaetbucher_preis}</td>
@@ -208,12 +218,12 @@ export default function AnmeldungPage() {
         {/* HINWEISE */}
         <div className="bg-[#FFF9E6] border border-[#FFE082] rounded-2xl p-5 space-y-1.5">
           <p className="text-[10px] font-bold tracking-widest uppercase text-amber-700 mb-3">Wichtige Hinweise</p>
-          {['GK LIP und Work-Shop finden gleichzeitig statt — nur eines buchbar','PS und TS laufen parallel — tageweiser Wechsel möglich (PS1=PS2, TS1=TS2 usw.)','Ski Alpin & Ärztesport über Ski Austria Akademie (skiakademie.at) — im Zimmerpreis inkl.','Steuerliche Absetzbarkeit bei mind. 8 Std. Nachweis (Grundkurs, Theorie, Praxis)'].map((h,i)=>(
-            <p key={i} className="text-xs text-amber-900 pl-4 relative before:content-['→'] before:absolute before:left-0 before:text-amber-600 before:font-bold">{h}</p>
+          {['GK LIP und Work-Shop finden gleichzeitig statt - nur eines buchbar','PS und TS laufen parallel - tageweiser Wechsel moeglich (PS1=PS2, TS1=TS2 usw.)','Ski Alpin & Aerztesport ueber Ski Austria Akademie (skiakademie.at) - im Zimmerpreis inkl.','Steuerliche Absetzbarkeit bei mind. 8 Std. Nachweis (Grundkurs, Theorie, Praxis)'].map((h,i)=>(
+            <p key={i} className="text-xs text-amber-900 pl-4 relative before:content-['->'] before:absolute before:left-0 before:text-amber-600 before:font-bold">{h}</p>
           ))}
         </div>
 
-        {/* ── STEP 1 ── */}
+        {/* STEP 1 */}
         {step === 'form' && <>
           <div className="bg-white border border-gray-200 rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-5"><div className="w-1 h-4 bg-[#FFBF00] rounded-full"/><h2 className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Persönliche Daten</h2></div>
@@ -223,7 +233,7 @@ export default function AnmeldungPage() {
                 <FI label="Nachname *" id="f-nachname" value={form.nachname} onChange={v=>setF('nachname',v)} error={errors.nachname}/>
               </div>
               <div className="grid grid-cols-3 gap-3">
-                <div className="col-span-2"><FI label="Straße *" id="f-strasse" value={form.strasse} onChange={v=>setF('strasse',v)} error={errors.strasse}/></div>
+                <div className="col-span-2"><FI label="Strasse *" id="f-strasse" value={form.strasse} onChange={v=>setF('strasse',v)} error={errors.strasse}/></div>
                 <FI label="Nr. *" id="f-hausnummer" value={form.hausnummer} onChange={v=>setF('hausnummer',v)} error={errors.hausnummer}/>
               </div>
               <div className="grid grid-cols-3 gap-3">
@@ -231,32 +241,32 @@ export default function AnmeldungPage() {
                 <div className="col-span-2"><FI label="Stadt *" id="f-stadt" value={form.stadt} onChange={v=>setF('stadt',v)} error={errors.stadt}/></div>
               </div>
               <FI label="Land *" id="f-land" value={form.land} onChange={v=>setF('land',v)} error={errors.land}/>
-              <FI label="ÖÄK-Nr. * (internationale Gäste: 0)" id="f-oeak" value={form.oeak_nr} onChange={v=>setF('oeak_nr',v)} error={errors.oeak_nr}/>
+              <FI label="OeAK-Nr. * (internationale Gaeste: 0)" id="f-oeak" value={form.oeak_nr} onChange={v=>setF('oeak_nr',v)} error={errors.oeak_nr}/>
               <div id="f-email">
                 <FI label="E-Mail *" id="f-email-inp" type="email" value={form.email} onChange={v=>{setF('email',v);setDuplikat(false)}} error={errors.email}/>
               </div>
               {duplikat && (
                 <div className="bg-blue-50 border border-blue-200 text-blue-800 text-sm p-4 rounded-xl leading-relaxed">
-                  ⚠ Diese E-Mail ist bereits für den Kongress {kongress.jahr} registriert.<br/>
-                  Bei Änderungswünschen: <a href={`mailto:${kongress.kontakt_email}`} className="font-bold underline">{kongress.kontakt_email}</a>
+                  Diese E-Mail ist bereits fuer den Kongress {kongress.jahr} registriert.
+                  Bei Aenderungswuenschen bitte melden bei: <a href={`mailto:${kongress.kontakt_email}`} className="font-bold underline">{kongress.kontakt_email}</a>
                 </div>
               )}
               <label className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${form.ist_oegsmp_mitglied?'border-[#FFBF00] bg-[#FFF9E6]':'border-gray-200 bg-gray-50 hover:bg-white hover:border-gray-300'}`}>
                 <input type="checkbox" checked={form.ist_oegsmp_mitglied} onChange={e=>setF('ist_oegsmp_mitglied',e.target.checked)} className="w-4 h-4 accent-amber-500"/>
-                <div><p className="text-sm font-semibold text-gray-900">Aktives ÖGSMP-Mitglied</p><p className="text-xs text-gray-400 mt-0.5">Rabatt beim Reinhard Suckert Symposium (−€ 20)</p></div>
+                <div><p className="text-sm font-semibold text-gray-900">Aktives OEGSMP-Mitglied</p><p className="text-xs text-gray-400 mt-0.5">Rabatt beim Reinhard Suckert Symposium (-20 Euro)</p></div>
               </label>
             </div>
           </div>
 
           <div className="bg-white border border-gray-200 rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-4"><div className="w-1 h-4 bg-[#FFBF00] rounded-full"/><h2 className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Kursauswahl</h2></div>
-            {konflikt && <div className="bg-red-50 border border-red-200 text-red-700 text-sm p-3 rounded-xl mb-3">⚠ {konflikt}</div>}
-            {errors.kurse && <div className="bg-red-50 border border-red-200 text-red-700 text-sm p-3 rounded-xl mb-3">⚠ {errors.kurse}</div>}
+            {konflikt && <div className="bg-red-50 border border-red-200 text-red-700 text-sm p-3 rounded-xl mb-3">{konflikt}</div>}
+            {errors.kurse && <div className="bg-red-50 border border-red-200 text-red-700 text-sm p-3 rounded-xl mb-3">{errors.kurse}</div>}
             <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-3">Blockkurse</p>
             {blockKurse.map(k=><KursRow key={k.id} kurs={k} selected={selected.has(k.id)} preis={getPreis(k,form.ist_oegsmp_mitglied,frueh)} onToggle={()=>toggleKurs(k)}/>)}
             <hr className="border-gray-100 my-4"/>
-            <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-1">Praxis- & Theorieseminare</p>
-            <p className="text-xs text-gray-400 mb-3">PS und TS laufen parallel — tageweiser Wechsel möglich (PS1=PS2, TS1=TS2 usw.)</p>
+            <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-1">Praxis- und Theorieseminare</p>
+            <p className="text-xs text-gray-400 mb-3">PS und TS laufen parallel - tageweiser Wechsel moeglich</p>
             <div className="grid grid-cols-2 gap-3">
               <div><p className="text-xs font-semibold text-gray-500 mb-2">Praxisseminare</p>{psKurse.map(k=><KursRow key={k.id} kurs={k} selected={selected.has(k.id)} preis={getPreis(k,form.ist_oegsmp_mitglied,frueh)} onToggle={()=>toggleKurs(k)} compact/>)}</div>
               <div><p className="text-xs font-semibold text-gray-500 mb-2">Theorieseminare</p>{tsKurse.map(k=><KursRow key={k.id} kurs={k} selected={selected.has(k.id)} preis={getPreis(k,form.ist_oegsmp_mitglied,frueh)} onToggle={()=>toggleKurs(k)} compact/>)}</div>
@@ -265,20 +275,20 @@ export default function AnmeldungPage() {
 
           {selected.size > 0 && (
             <div className="bg-white border-2 border-[#FFBF00] rounded-2xl px-6 py-4 flex items-center justify-between">
-              <div><p className="text-xs text-gray-400">{selected.size} Kurs{selected.size!==1?'e':''} ausgewählt</p><p className="text-2xl font-extrabold">€ {gesamtbetrag.toFixed(2)}</p></div>
-              {frueh ? <div className="text-right"><span className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">Frühbucherpreis</span><p className="text-xs text-gray-400 mt-1">bis {fruehText}</p></div> : <span className="bg-gray-100 text-gray-500 text-xs font-bold px-3 py-1 rounded-full">Normaltarif</span>}
+              <div><p className="text-xs text-gray-400">{selected.size} Kurs{selected.size!==1?'e':''} ausgewaehlt</p><p className="text-2xl font-extrabold">EUR {gesamtbetrag.toFixed(2)}</p></div>
+              {frueh ? <div className="text-right"><span className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">Fruehbucherpreis</span><p className="text-xs text-gray-400 mt-1">bis {fruehText}</p></div> : <span className="bg-gray-100 text-gray-500 text-xs font-bold px-3 py-1 rounded-full">Normaltarif</span>}
             </div>
           )}
-          <button onClick={goConfirm} disabled={checkLoading} className="w-full bg-[#FFBF00] hover:bg-[#FFD54F] disabled:bg-gray-200 disabled:text-gray-400 text-black font-bold py-4 rounded-2xl transition-all text-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0">
-            {checkLoading ? 'Wird geprüft…' : 'Weiter zur Überprüfung →'}
+          <button onClick={goConfirm} disabled={checkLoading} className="w-full bg-[#FFBF00] hover:bg-[#FFD54F] disabled:bg-gray-200 disabled:text-gray-400 text-black font-bold py-4 rounded-2xl transition-all text-sm">
+            {checkLoading ? 'Wird geprueft...' : 'Weiter zur Ueberpruefung'}
           </button>
         </>}
 
-        {/* ── STEP 2 ── */}
+        {/* STEP 2 */}
         {step === 'confirm' && <>
           <div className="bg-white border border-gray-200 rounded-2xl p-6">
-            <div className="flex items-center gap-2 mb-4"><div className="w-1 h-4 bg-[#FFBF00] rounded-full"/><h2 className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Daten überprüfen</h2></div>
-            {[['Name',fullName],['Adresse',`${form.strasse} ${form.hausnummer}, ${form.postleitzahl} ${form.stadt}, ${form.land}`],['ÖÄK-Nr.',form.oeak_nr],['E-Mail',form.email],...(form.ist_oegsmp_mitglied?[['ÖGSMP-Mitglied','Ja']]:[])] .map(([l,v])=>(
+            <div className="flex items-center gap-2 mb-4"><div className="w-1 h-4 bg-[#FFBF00] rounded-full"/><h2 className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Daten ueberpruefen</h2></div>
+            {[['Name',fullName],['Adresse',`${form.strasse} ${form.hausnummer}, ${form.postleitzahl} ${form.stadt}, ${form.land}`],['OeAK-Nr.',form.oeak_nr],['E-Mail',form.email],...(form.ist_oegsmp_mitglied?[['OEGSMP-Mitglied','Ja']]:[])] .map(([l,v])=>(
               <div key={l} className="flex justify-between py-2 border-b border-gray-100 last:border-0 text-sm gap-4"><span className="text-gray-400 flex-shrink-0">{l}</span><span className="font-semibold text-right">{v}</span></div>
             ))}
           </div>
@@ -286,16 +296,16 @@ export default function AnmeldungPage() {
           <div className="bg-white border border-gray-200 rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-4"><div className="w-1 h-4 bg-[#FFBF00] rounded-full"/><h2 className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Gebuchte Kurse</h2></div>
             {Array.from(selected).map(id => { const k=kurse.find(k=>k.id===id)!; const p=getPreis(k,form.ist_oegsmp_mitglied,frueh); return (
-              <div key={id} className="flex justify-between py-2 border-b border-gray-100 last:border-0 text-sm"><span className="text-gray-600">{k.titel}</span><span className="font-semibold">€ {p.toFixed(2)}</span></div>
+              <div key={id} className="flex justify-between py-2 border-b border-gray-100 last:border-0 text-sm"><span className="text-gray-600">{k.titel}</span><span className="font-semibold">EUR {p.toFixed(2)}</span></div>
             )})}
-            <div className="flex justify-between pt-3 mt-1 border-t-2 border-gray-100 font-bold"><span>Gesamtbetrag</span><span className="text-amber-700">€ {gesamtbetrag.toFixed(2)}</span></div>
+            <div className="flex justify-between pt-3 mt-1 border-t-2 border-gray-100 font-bold"><span>Gesamtbetrag</span><span className="text-amber-700">EUR {gesamtbetrag.toFixed(2)}</span></div>
           </div>
 
           <div className="bg-[#FFF9E6] border border-[#FFE082] rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-4"><div className="w-1 h-4 bg-[#FFBF00] rounded-full"/><h2 className="text-[10px] font-bold tracking-widest uppercase text-amber-700">Zahlung</h2></div>
-            <p className="text-sm text-amber-800 mb-4 leading-relaxed">Bitte überweisen Sie nach der Anmeldung. Nach Zahlungseingang erhalten Sie eine Rechnung per E-Mail.</p>
+            <p className="text-sm text-amber-800 mb-4 leading-relaxed">Bitte ueberweisen Sie nach der Anmeldung. Nach Zahlungseingang erhalten Sie eine Rechnung per E-Mail.</p>
             <div className="bg-white rounded-xl border border-amber-200 p-4 space-y-2">
-              {[['IBAN',kongress.iban,true],['BIC',kongress.bic,false],['Kontoinhaber',kongress.kontoinhaber,false],['Verwendungszweck',fullName,true],['Betrag',`€ ${gesamtbetrag.toFixed(2)}`,true]].map(([l,v,hi])=>(
+              {[['IBAN',kongress.iban,true],['BIC',kongress.bic,false],['Kontoinhaber',kongress.kontoinhaber,false],['Verwendungszweck',fullName,true],['Betrag',`EUR ${gesamtbetrag.toFixed(2)}`,true]].map(([l,v,hi])=>(
                 <div key={l as string} className="flex gap-3 items-baseline"><span className="text-gray-400 text-xs w-32 flex-shrink-0">{l}</span><span className={`text-sm font-semibold font-mono ${hi?'text-amber-700':'text-gray-700'}`}>{v}</span></div>
               ))}
             </div>
@@ -303,21 +313,21 @@ export default function AnmeldungPage() {
 
           {submitError && <div className="bg-red-50 border border-red-200 text-red-700 text-sm p-4 rounded-xl">{submitError}</div>}
           <div className="flex gap-3">
-            <button onClick={()=>{setStep('form');window.scrollTo({top:0,behavior:'smooth'})}} className="flex-1 border-2 border-gray-200 text-gray-700 font-semibold py-4 rounded-2xl hover:bg-gray-50 transition-all text-sm">← Zurück</button>
-            <button onClick={submit} disabled={submitLoading} className="flex-[2] bg-[#FFBF00] hover:bg-[#FFD54F] disabled:bg-gray-200 disabled:text-gray-400 text-black font-bold py-4 rounded-2xl transition-all text-sm hover:shadow-md">
-              {submitLoading ? 'Wird gespeichert…' : 'Jetzt verbindlich anmelden'}
+            <button onClick={()=>{setStep('form');window.scrollTo({top:0,behavior:'smooth'})}} className="flex-1 border-2 border-gray-200 text-gray-700 font-semibold py-4 rounded-2xl hover:bg-gray-50 transition-all text-sm">Zurueck</button>
+            <button onClick={submit} disabled={submitLoading} className="flex-[2] bg-[#FFBF00] hover:bg-[#FFD54F] disabled:bg-gray-200 disabled:text-gray-400 text-black font-bold py-4 rounded-2xl transition-all text-sm">
+              {submitLoading ? 'Wird gespeichert...' : 'Jetzt verbindlich anmelden'}
             </button>
           </div>
         </>}
 
-        {/* ── STEP 3 ── */}
+        {/* STEP 3 */}
         {step === 'done' && (
           <div className="bg-white border border-gray-200 rounded-2xl p-10 text-center">
             <div className="w-16 h-16 bg-green-100 border-2 border-green-200 rounded-full flex items-center justify-center mx-auto mb-5 text-2xl font-bold text-green-600">✓</div>
             <h2 className="text-2xl font-extrabold mb-2">Anmeldung eingegangen!</h2>
-            <p className="text-gray-500 text-sm mb-6 leading-relaxed">Danke, {form.vorname}! Eine Bestätigungs-E-Mail wurde an <strong>{form.email}</strong> gesendet.</p>
+            <p className="text-gray-500 text-sm mb-6 leading-relaxed">Danke, {form.vorname}! Eine Bestaetgungs-E-Mail wurde an <strong>{form.email}</strong> gesendet.</p>
             <div className="bg-[#FFF9E6] border border-[#FFE082] rounded-xl p-5 text-left space-y-2 mb-5">
-              {[['Betrag',`€ ${gesamtbetrag.toFixed(2)}`,true],['IBAN',kongress.iban,false],['BIC',kongress.bic,false],['Verwendungszweck',fullName,true]].map(([l,v,hi])=>(
+              {[['Betrag',`EUR ${gesamtbetrag.toFixed(2)}`,true],['IBAN',kongress.iban,false],['BIC',kongress.bic,false],['Verwendungszweck',fullName,true]].map(([l,v,hi])=>(
                 <div key={l as string} className="flex gap-3"><span className="text-gray-400 text-xs w-32 flex-shrink-0">{l}</span><span className={`text-sm font-semibold font-mono ${hi?'text-amber-700':'text-gray-700'}`}>{v}</span></div>
               ))}
             </div>
@@ -325,7 +335,7 @@ export default function AnmeldungPage() {
           </div>
         )}
 
-        <p className="text-center text-xs text-gray-400 pb-4">Prof. h.c. Univ.-Doz. Dr. Günther Neumayr · <a href={`mailto:${kongress.kontakt_email}`} className="hover:underline">{kongress.kontakt_email}</a></p>
+        <p className="text-center text-xs text-gray-400 pb-4">Prof. h.c. Univ.-Doz. Dr. Guenther Neumayr · <a href={`mailto:${kongress.kontakt_email}`} className="hover:underline">{kongress.kontakt_email}</a></p>
       </div>
     </main>
   )
@@ -349,10 +359,9 @@ function KursRow({kurs,selected,preis,onToggle,compact}:{kurs:Kurs;selected:bool
       <div className="flex-1 min-w-0">
         <p className={`font-semibold text-gray-900 ${compact?'text-xs':'text-sm'}`}>{kurs.titel}</p>
         {!compact && <p className="text-xs text-gray-400 mt-0.5">{kurs.wochentag_datum}</p>}
-        {!compact && kurs.exklusiv_gruppe && <p className="text-xs text-amber-600 font-medium mt-0.5">Nicht gleichzeitig mit {kurs.titel.includes('LIP')?'Work-Shop':'Grundkurs LIP'} buchbar</p>}
         {compact && <p className="text-[10px] text-gray-400 mt-0.5">{kurs.wochentag_datum}</p>}
       </div>
-      <span className={`font-bold text-gray-800 flex-shrink-0 ${compact?'text-xs':'text-sm'}`}>€ {preis}</span>
+      <span className={`font-bold text-gray-800 flex-shrink-0 ${compact?'text-xs':'text-sm'}`}>EUR {preis}</span>
     </label>
   )
-} 
+}

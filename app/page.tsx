@@ -198,7 +198,7 @@ export default function AnmeldungPage() {
                 <tr><td colSpan={4} className="pt-3 pb-1 text-[10px] font-bold uppercase tracking-wide text-gray-400">Blockkurse</td></tr>
                 {blockKurse.map(k=>(
                   <tr key={k.id} className="border-b border-gray-50">
-                    <td className="py-2 text-gray-700 font-medium">{k.titel}{k.mitglied_fruehbucher_preis&&<span className="ml-1.5 text-[10px] text-blue-600 font-semibold bg-blue-50 px-1.5 py-0.5 rounded">ÖGSMP −€20</span>}</td>
+                    <td className="py-2 text-gray-700 font-medium">{k.titel}{k.mitglied_fruehbucher_preis&&k.titel.toLowerCase().includes('suckert')&&<span className="ml-1.5 text-[10px] text-blue-600 font-semibold bg-blue-50 px-1.5 py-0.5 rounded">ÖGSMP −€20</span>}</td>
                     <td className="py-2 text-right text-gray-400">{k.wochentag_datum}</td>
                     <td className="py-2 text-right font-semibold text-gray-800">€ {k.fruehbucher_preis}</td>
                     <td className="py-2 text-right font-semibold text-amber-700">€ {k.spaetbucher_preis}</td>

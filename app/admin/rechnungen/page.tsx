@@ -161,8 +161,8 @@ export default function RechnungenPage(){
               const isOpen=expanded===g.tnId
               const historie=getHistorie(g.buchungen)
               const hatOffeneOhneRechnung=g.buchungen.some(b=>!b.rechnungsnummer&&b.zahlungsstatus!=='storniert')
-              const alleRechNummern=[...new Set(g.buchungen.map(b=>b.rechnungsnummer).filter(Boolean))]
-              const hatStorno=g.buchungen.some(b=>b.zahlungsstatus==='storniert'&&b.zahlungs_eingang_am)
+              const alleRechNummern=Array.from(new Set(g.buchungen.map(b=>b.rechnungsnummer).filter(Boolean)))
+              const hatStorno=g.buchungen.some(b=>b.zahlungsstatus==='storniert')
               return(
                 <div key={g.tnId} className={i>0?'border-t border-gray-100':''}>
                   <div className={`flex items-center gap-4 px-4 py-3.5 cursor-pointer transition-all ${isOpen?'bg-[#FFF9E6]':'hover:bg-gray-50'}`} onClick={()=>setExpanded(isOpen?null:g.tnId)}>

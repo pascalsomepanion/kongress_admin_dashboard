@@ -7,7 +7,7 @@ export async function POST(req:NextRequest){
   const{error}=await resend.emails.send({
     from:`${kongress_name} <anmeldung@sportmedizin-arlberg.at>`,
     to:email,bcc:kontakt_email,
-    subject:`Anmeldebestätigung – ${kongress_name}`,
+    subject:`Anmeldebestaetigung - ${kongress_name}`,
     html:`<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
       <div style="background:#FFBF00;padding:28px 36px;border-radius:10px 10px 0 0">
         <p style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(0,0,0,.45);margin:0 0 4px">${kongress_name}</p>

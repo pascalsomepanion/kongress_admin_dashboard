@@ -1,26 +1,22 @@
-// Rechnungs-HTML Generator
-// Erzeugt A4-HTML das exakt wie die Vorlage aussieht
-// Wird im Browser via window.print() als PDF gedruckt
-
 export type RechnungDaten = {
   rechnungsnummer: string
   datum: string
-  anrede: string              // 'Damen und Herren' | 'Frau [Name]' | 'Herr [Name]'
+  anrede: string
   empfaenger_name: string
-  empfaenger_zeile2?: string  // z.B. Ansprechperson bei Sponsor
+  empfaenger_zeile2?: string
   empfaenger_strasse: string
   empfaenger_plz_ort: string
   empfaenger_land: string
-  empfaenger_kennung?: string // ÖÄK-Nr. bei Teilnehmer, UID bei Sponsor
+  empfaenger_kennung?: string
   positionen: { bezeichnung: string; menge: number; einzelpreis: number }[]
   mwst_typ: 'mit_mwst' | 'reverse_charge' | 'nicht_steuerbar'
   bezahlt: boolean
   kongress_name: string
   kongress_jahr: number
-  intro_text: string         // Einleitungstext je nach Typ
+  intro_text: string
 }
 
-const AUSSTELLER = {
+const A = {
   name: 'Prof. h.c. Univ.-Doz. Dr. Günther Neumayr',
   strasse: 'Michaelsgasse 20',
   plz_ort: '9900 Lienz',
@@ -36,48 +32,36 @@ const AUSSTELLER = {
 }
 
 export function buildRechnungHTML(r: RechnungDaten): string {
-  // Berechnung
   const gesamtBrutto = r.positionen.reduce((s, p) => s + p.menge * p.einzelpreis, 0)
   const netto = r.mwst_typ === 'mit_mwst' ? gesamtBrutto / 1.2 : gesamtBrutto
   const mwst = gesamtBrutto - netto
 
   const posTR = r.positionen.map((p, i) => `
     <tr>
-      <td style="border:1px solid #ddd;padding:5px 7px">${i + 1}.</td>
-      <td style="border:1px solid #ddd;padding:5px 7px">${p.bezeichnung}</td>
-      <td style="border:1px solid #ddd;padding:5px 7px;text-align:right">${p.menge}</td>
-      <td style="border:1px solid #ddd;padding:5px 7px">Stück</td>
-      <td style="border:1px solid #ddd;padding:5px 7px;text-align:right">${(p.einzelpreis * (r.mwst_typ === 'mit_mwst' ? 1 : 1)).toFixed(2)}</td>
-      <td style="border:1px solid #ddd;padding:5px 7px;text-align:right">${(p.menge * p.einzelpreis).toFixed(2)}</td>
+      <td style="border:1px solid #ccc;padding:6px 10px;font-size:10px">${i + 1}.</td>
+      <td style="border:1px solid #ccc;padding:6px 10px;font-size:10px">${p.bezeichnung}</td>
+      <td style="border:1px solid #ccc;padding:6px 10px;text-align:center;font-size:10px">${p.menge}</td>
+      <td style="border:1px solid #ccc;padding:6px 10px;font-size:10px">Stück</td>
+      <td style="border:1px solid #ccc;padding:6px 10px;text-align:right;font-size:10px">${p.einzelpreis.toFixed(2)}</td>
+      <td style="border:1px solid #ccc;padding:6px 10px;text-align:right;font-size:10px">${(p.menge * p.einzelpreis).toFixed(2)}</td>
     </tr>`).join('')
 
   const summenBlock = r.mwst_typ === 'mit_mwst' ? `
-    <tr>
-      <td style="border:none;font-size:10px;padding:3px 0">Bruttobetrag</td>
-      <td style="border:none;text-align:right;font-size:10px;padding:3px 0">${gesamtBrutto.toFixed(2)}</td>
-    </tr>
-    <tr>
-      <td style="border:none;font-size:10px;padding:3px 0">Ust. 20 % inkl.</td>
-      <td style="border:none;text-align:right;font-size:10px;padding:3px 0">${mwst.toFixed(2)}</td>
-    </tr>
-    <tr>
-      <td style="border:none;font-weight:bold;font-size:12px;padding:5px 0;border-top:2px solid #111">Rechnungsbetrag</td>
-      <td style="border:none;text-align:right;font-weight:bold;font-size:14px;padding:5px 0;border-top:2px solid #111">${gesamtBrutto.toFixed(2)}</td>
-    </tr>` : r.mwst_typ === 'reverse_charge' ? `
-    <tr>
-      <td style="border:none;font-weight:bold;font-size:12px;padding:5px 0;border-top:2px solid #111">Rechnungsbetrag netto</td>
-      <td style="border:none;text-align:right;font-weight:bold;font-size:14px;padding:5px 0;border-top:2px solid #111">${netto.toFixed(2)}</td>
-    </tr>` : `
-    <tr>
-      <td style="border:none;font-weight:bold;font-size:12px;padding:5px 0;border-top:2px solid #111">Rechnungsbetrag netto</td>
-      <td style="border:none;text-align:right;font-weight:bold;font-size:14px;padding:5px 0;border-top:2px solid #111">${netto.toFixed(2)}</td>
-    </tr>`
+    <tr><td style="border:none;font-size:10px;padding:4px 0;color:#555">Bruttobetrag</td><td style="border:none;text-align:right;font-size:10px;padding:4px 0">${gesamtBrutto.toFixed(2)}</td></tr>
+    <tr><td style="border:none;font-size:10px;padding:4px 0;color:#555">Ust. 20 % inkl.</td><td style="border:none;text-align:right;font-size:10px;padding:4px 0">${mwst.toFixed(2)}</td></tr>
+    <tr><td style="border:none;font-weight:bold;font-size:12px;padding:6px 0 4px;border-top:2px solid #111">Rechnungsbetrag</td><td style="border:none;text-align:right;font-weight:bold;font-size:14px;padding:6px 0 4px;border-top:2px solid #111">${gesamtBrutto.toFixed(2)}</td></tr>`
+  : `<tr><td style="border:none;font-weight:bold;font-size:12px;padding:6px 0;border-top:2px solid #111">Rechnungsbetrag netto</td><td style="border:none;text-align:right;font-weight:bold;font-size:14px;padding:6px 0;border-top:2px solid #111">${netto.toFixed(2)}</td></tr>`
 
   const steuerHinweis = r.mwst_typ === 'reverse_charge'
-    ? `<p style="font-size:10px;margin-top:8px">Die Umsatzsteuer wird vom Leistungsempfänger geschuldet (Reverse-Charge-Verfahren).</p>`
+    ? `<p style="font-size:10px;margin-top:6mm;color:#555">Die Umsatzsteuer wird vom Leistungsempfänger geschuldet (Reverse-Charge-Verfahren).</p>`
     : r.mwst_typ === 'nicht_steuerbar'
-    ? `<p style="font-size:10px;margin-top:8px">Nicht steuerbar gem. § 3a UStG.</p>`
+    ? `<p style="font-size:10px;margin-top:6mm;color:#555">Nicht steuerbar gem. § 3a UStG.</p>`
     : ''
+
+  // Kongress-Titel ohne doppeltes Jahr
+  const kongressTitel = r.kongress_name.includes(String(r.kongress_jahr))
+    ? r.kongress_name
+    : `${r.kongress_name} ${r.kongress_jahr}`
 
   return `<!DOCTYPE html>
 <html lang="de">
@@ -85,50 +69,49 @@ export function buildRechnungHTML(r: RechnungDaten): string {
 <meta charset="utf-8">
 <title>Rechnung ${r.rechnungsnummer}</title>
 <style>
-  @page { size: A4; margin: 18mm 20mm 25mm 20mm; }
+  @page { size: A4; margin: 15mm 20mm 20mm 20mm; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #111; background: white; }
   @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-  .footer { margin-top: 20mm; border-top: 1px solid #ccc; padding-top: 5px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; font-size: 9px; color: #555; }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14mm">
-  <div style="font-size:9px;color:#888;line-height:1.6">${AUSSTELLER.name} · ${AUSSTELLER.strasse} · ${AUSSTELLER.plz_ort}</div>
-  <img src="/logo.svg" style="height:20mm;width:auto" alt="Sportmedizin Arlberg Logo" />
-</div>
-
-<!-- DATUM + BEARBEITERIN -->
-<div style="text-align:right;margin-bottom:8mm;font-size:10px;line-height:1.9;color:#444">
-  <div>${r.datum}</div>
-  <div>Bearbeiterin: ${AUSSTELLER.bearbeiterin}</div>
-  <div>E-Mail: ${AUSSTELLER.email}</div>
+<!-- HEADER: Logo + Datum/Bearbeiterin nebeneinander -->
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8mm">
+  <div style="flex:1"></div>
+  <div style="text-align:right">
+    <img src="/logo.svg" style="height:18mm;width:auto;display:block;margin-left:auto;margin-bottom:6px" alt="Logo"/>
+    <div style="font-size:10px;line-height:1.8;color:#333">
+      <div>${r.datum}</div>
+      <div>Bearbeiterin: ${A.bearbeiterin}</div>
+      <div>E-Mail: ${A.email}</div>
+    </div>
+  </div>
 </div>
 
 <!-- EMPFÄNGER -->
-<div style="margin-bottom:8mm;font-size:10px;line-height:1.8">
-  <div style="font-weight:bold">${r.empfaenger_name}</div>
+<div style="margin-bottom:7mm;font-size:10px;line-height:1.8">
+  <div style="font-weight:bold;font-size:11px">${r.empfaenger_name}</div>
   ${r.empfaenger_zeile2 ? `<div>${r.empfaenger_zeile2}</div>` : ''}
   <div>${r.empfaenger_strasse}</div>
   <div>${r.empfaenger_plz_ort}</div>
-  ${r.empfaenger_kennung ? `<div style="margin-top:3px">${r.empfaenger_kennung}</div>` : ''}
+  ${r.empfaenger_kennung ? `<div style="margin-top:2px;color:#555">${r.empfaenger_kennung}</div>` : ''}
 </div>
 
 <!-- TITEL -->
-<div style="margin-bottom:5mm">
-  <div style="font-size:15px;font-weight:bold;margin-bottom:3px">Rechnung für die Teilnahme</div>
-  <div style="font-size:11px;font-weight:bold">zum ${r.kongress_name} ${r.kongress_jahr}</div>
+<div style="margin-bottom:4mm">
+  <div style="font-size:16px;font-weight:bold">Rechnung für die Teilnahme</div>
+  <div style="font-size:11px;font-weight:bold;margin-top:2px">zum ${kongressTitel}</div>
 </div>
 
 <!-- RECHNUNGSNUMMER -->
-<div style="margin-bottom:5mm;font-size:10px">
+<div style="margin-bottom:5mm;font-size:10px;color:#333">
   Rechnungsnummer: <strong>${r.rechnungsnummer}</strong>
 </div>
 
 <!-- ANREDE + TEXT -->
-<div style="margin-bottom:6mm;font-size:10px;line-height:1.7">
+<div style="margin-bottom:5mm;font-size:10px;line-height:1.7">
   <p>Sehr geehrte${r.anrede === 'Damen und Herren' ? '' : 'r'} ${r.anrede},</p>
   <br>
   <p>${r.intro_text}</p>
@@ -137,13 +120,13 @@ export function buildRechnungHTML(r: RechnungDaten): string {
 <!-- POSITIONEN -->
 <table style="width:100%;border-collapse:collapse;font-size:10px;margin-bottom:5mm">
   <thead>
-    <tr style="background:#f5f5f5">
-      <th style="border:1px solid #ddd;padding:5px 7px;text-align:left;font-size:9px;width:5%">Pos.</th>
-      <th style="border:1px solid #ddd;padding:5px 7px;text-align:left;font-size:9px">Bezeichnung</th>
-      <th style="border:1px solid #ddd;padding:5px 7px;text-align:right;font-size:9px;width:8%">Menge</th>
-      <th style="border:1px solid #ddd;padding:5px 7px;text-align:left;font-size:9px;width:8%">Einheit</th>
-      <th style="border:1px solid #ddd;padding:5px 7px;text-align:right;font-size:9px;width:12%">Einzelpreis</th>
-      <th style="border:1px solid #ddd;padding:5px 7px;text-align:right;font-size:9px;width:12%">Gesamtpreis</th>
+    <tr style="background:#f0f0f0">
+      <th style="border:1px solid #ccc;padding:6px 10px;text-align:left;width:5%">Pos.</th>
+      <th style="border:1px solid #ccc;padding:6px 10px;text-align:left">Bezeichnung</th>
+      <th style="border:1px solid #ccc;padding:6px 10px;text-align:center;width:8%">Menge</th>
+      <th style="border:1px solid #ccc;padding:6px 10px;text-align:left;width:8%">Einheit</th>
+      <th style="border:1px solid #ccc;padding:6px 10px;text-align:right;width:13%">Einzelpreis</th>
+      <th style="border:1px solid #ccc;padding:6px 10px;text-align:right;width:13%">Gesamtpreis</th>
     </tr>
   </thead>
   <tbody>${posTR}</tbody>
@@ -151,43 +134,42 @@ export function buildRechnungHTML(r: RechnungDaten): string {
 
 <!-- SUMMEN -->
 <div style="display:flex;justify-content:flex-end;margin-bottom:5mm">
-  <table style="width:200px;border-collapse:collapse">${summenBlock}</table>
+  <table style="width:220px;border-collapse:collapse">${summenBlock}</table>
 </div>
 
 ${steuerHinweis}
 
 <!-- BEZAHLT -->
-${r.bezahlt ? `<div style="font-size:13px;font-weight:bold;margin:6mm 0">Ihre Zahlung wurde dankend erhalten.</div>` : ''}
+${r.bezahlt ? `<div style="font-size:13px;font-weight:bold;margin:5mm 0">Ihre Zahlung wurde dankend erhalten.</div>` : ''}
 
 <!-- GRUSS -->
-<div style="font-size:10px;line-height:1.9;margin-top:10mm">
+<div style="font-size:10px;line-height:1.9;margin-top:8mm">
   <p>Mit sportlichen Grüßen</p>
   <br><br>
-  <p style="font-weight:bold;font-style:italic">${AUSSTELLER.name}</p>
+  <p style="font-weight:bold;font-style:italic">${A.name}</p>
   <p>Kongresspräsident</p>
 </div>
 
 <!-- FOOTER -->
-<div class="footer">
+<div style="margin-top:auto;padding-top:5mm;border-top:1px solid #ccc;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;font-size:9px;color:#555;position:fixed;bottom:10mm;left:20mm;right:20mm">
   <div>
-    <div>${AUSSTELLER.name}</div>
-    <div>${AUSSTELLER.strasse}</div>
-    <div>${AUSSTELLER.plz_ort}</div>
-    <div>${AUSSTELLER.land}</div>
-    <div>UID: ${AUSSTELLER.uid}</div>
+    <div style="font-weight:bold;margin-bottom:3px">${A.name}</div>
+    <div>${A.strasse}</div>
+    <div>${A.plz_ort} · ${A.land}</div>
+    <div>UID: ${A.uid}</div>
   </div>
   <div>
     <div style="font-weight:bold;margin-bottom:3px">Bankverbindung</div>
     <div>Inhaber: Günther Neumayr</div>
-    <div>Bank: ${AUSSTELLER.bank}</div>
-    <div>IBAN: ${AUSSTELLER.iban}</div>
-    <div>BIC: ${AUSSTELLER.bic}</div>
+    <div>Bank: ${A.bank}</div>
+    <div>IBAN: ${A.iban}</div>
+    <div>BIC: ${A.bic}</div>
   </div>
   <div>
     <div style="font-weight:bold;margin-bottom:3px">Kontakt</div>
-    <div>Tel.: ${AUSSTELLER.tel}</div>
-    <div>E-Mail: ${AUSSTELLER.email}</div>
-    <div>Website: ${AUSSTELLER.website}</div>
+    <div>Tel.: ${A.tel}</div>
+    <div>E-Mail: ${A.email}</div>
+    <div>Website: ${A.website}</div>
   </div>
 </div>
 

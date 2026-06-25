@@ -33,7 +33,7 @@ export default function ExportPage(){
       const kursListe=tb.map((b:any)=>b.kurse?.titel).filter(Boolean).join(' | ')
       const gesamtbetrag=tb.reduce((s:number,b:any)=>s+Number(b.gebuchter_preis),0)
       const bezahlt=tb.every((b:any)=>b.zahlungsstatus==='bezahlt')
-      const rNr=[...new Set(tb.map((b:any)=>b.rechnungsnummer).filter(Boolean))].join(' | ')
+      const rNr=Array.from(new Set(tb.map((b:any)=>b.rechnungsnummer).filter(Boolean))).join(' | ')
       return{Nachname:t.nachname,Vorname:t.vorname,Email:t.email,OeAK_Nr:t.oeak_nr,Strasse:`${t.strasse} ${t.hausnummer}`,PLZ:t.postleitzahl,Stadt:t.stadt,Land:t.land,OEGSMP:t.ist_oegsmp_mitglied?'Ja':'Nein',Kurse:kursListe,Gesamtbetrag:gesamtbetrag.toFixed(2),Zahlung:bezahlt?'Bezahlt':'Ausstehend',Rechnungsnummer:rNr,Angemeldet:new Date(t.registriert_am).toLocaleDateString('de-AT')}
     })
     toCSV(rows,`Teilnehmer_Kurse_${k.jahr}.csv`)

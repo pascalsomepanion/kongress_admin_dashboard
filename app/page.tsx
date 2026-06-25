@@ -355,4 +355,4 @@ function KursRow({kurs,selected,preis,onToggle,compact}:{kurs:Kurs;selected:bool
       <span className={`font-bold text-gray-800 flex-shrink-0 ${compact?'text-xs':'text-sm'}`}>€ {preis}</span>
     </label>
   )
-}
+} 

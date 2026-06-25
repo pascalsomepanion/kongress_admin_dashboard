@@ -131,6 +131,7 @@ export default function AnmeldungPage() {
           fruehbucher_bis: formatDE(kongress.fruehbucher_bis),
           storno_kostenlos_bis: formatDE(kongress.storno_kostenlos_bis),
           storno_50_bis: formatDE(kongress.storno_50_bis),
+          sekretariat_zeiten: (kongress as any).sekretariat_zeiten ?? '',
           kurs_titel: Array.from(selected).map(id => kurse.find(k=>k.id===id)!.titel),
           gesamtbetrag,
         }),

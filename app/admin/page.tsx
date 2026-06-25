@@ -128,7 +128,7 @@ export default function Dashboard(){
         <div className="grid grid-cols-4 gap-4">
           <KPI icon="👥" label="Teilnehmer gesamt" value={stats?.tnGesamt??0} sub={`+${stats?.tnHeute??0} heute · +${stats?.tnDieseWoche??0} diese Woche`} color="text-gray-900"/>
           <KPI icon="💶" label="Bezahlt" value={euro(stats?.bezahlt??0)} sub={`von ${euro((stats?.bezahlt??0)+(stats?.ausstehend??0))} Gesamtumsatz`} color="text-green-700"/>
-          <KPI icon="⏳" label="Ausstehend" value={euro(stats?.ausstehend??0)} sub={`${stats?.offeneZahlungen??0} offene Zahlungen`} color="text-amber-700" alert/>
+          <KPI icon="⏳" label="Ausstehend" value={euro(stats?.ausstehend??0)} sub={`${offeneZahlungen.length} offene Zahlungen`} color="text-amber-700" alert/>
           <KPI icon="📚" label="Buchungen" value={stats?.buchungenGesamt??0} sub={`${stats?.stornoAnzahl??0} Stornierungen`} color="text-gray-900"/>
         </div>
 

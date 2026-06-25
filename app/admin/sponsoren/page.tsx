@@ -91,10 +91,11 @@ export default function SponsorenPage(){
       empfaenger_plz_ort:`${sp.plz} ${sp.ort}`,
       empfaenger_land:sp.land,
       empfaenger_kennung:sp.uid_nr?`UID: ${sp.uid_nr}`:undefined,
-      positionen:[{bezeichnung:rForm.beschreibung,menge:1,einzelpreis:netto}],
+      positionen:[{bezeichnung:rForm.beschreibung,menge:1,einzelpreis:brutto}],
       mwst_typ:rForm.mwst_typ,bezahlt:false,
       kongress_name:k.name,kongress_jahr:k.jahr,
       intro_text:`vielen Dank für Ihre Bereitschaft und Ihr Interesse, den ${k.name} ${k.jahr} zu fördern.\n\nFür die vereinbarten Leistungen dürfen wir wunschgemäß nachstehende Rechnung stellen und höflich um Überweisung des gesamten Rechnungsbetrages auf das nachstehend angeführte Konto ersuchen.`,
+      ohne_tabelle:true,
     })
     setPreview(html)
   }
@@ -129,10 +130,11 @@ export default function SponsorenPage(){
       empfaenger_strasse:`${sp.strasse} ${sp.hausnummer??''}`,
       empfaenger_plz_ort:`${sp.plz} ${sp.ort}`,empfaenger_land:sp.land,
       empfaenger_kennung:sp.uid_nr?`UID: ${sp.uid_nr}`:undefined,
-      positionen:[{bezeichnung:r.beschreibung,menge:1,einzelpreis:netto}],
+      positionen:[{bezeichnung:r.beschreibung,menge:1,einzelpreis:brutto}],
       mwst_typ:r.mwst_typ as MwstTyp,bezahlt:r.zahlungsstatus==='bezahlt',
       kongress_name:k.name,kongress_jahr:k.jahr,
       intro_text:`vielen Dank für Ihre Bereitschaft und Ihr Interesse, den ${k.name} ${k.jahr} zu fördern.`,
+      ohne_tabelle:true,
     })
     await fetch('/api/send-rechnung',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:sp.email,vorname:'',nachname:sp.firmenname,rechnungsnummer:r.rechnungsnummer,html,kongress_name:k.name})})
     await supabase.from('sponsoren_rechnungen').update({versendet_am:new Date().toISOString()}).eq('id',r.id)

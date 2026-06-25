@@ -6,7 +6,7 @@ export async function POST(req:NextRequest){
     const resend=new Resend(process.env.RESEND_API_KEY)
     const subject='Rechnung '+body.rechnungsnummer+' '+body.kongress_name
     await resend.emails.send({
-      from:'anmeldung@sportmedizin-arlberg.at',
+      from:'info@sportmedizin-arlberg.at',
       to:body.email,
       bcc:'info@sportmedizin-arlberg.at',
       subject:subject,

@@ -25,6 +25,7 @@ export type Kongress = {
   kontoinhaber: string
   kontakt_email: string
   begruessung: string
+  sekretariat_zeiten: string
 }
 
 export type Kurs = {

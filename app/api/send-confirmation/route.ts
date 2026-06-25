@@ -7,7 +7,7 @@ export async function POST(req:NextRequest){
     const kurse=(body.kurs_titel as string[]).join(', ')
     const subject='Anmeldebestaetigung '+body.kongress_name
     await resend.emails.send({
-      from:'anmeldung@sportmedizin-arlberg.at',
+      from:'info@sportmedizin-arlberg.at',
       to:body.email,
       bcc:body.kontakt_email,
       subject:subject,

@@ -1,285 +1,336 @@
 'use client'
 import{useEffect,useState}from'react'
-import{supabase,getAktuellerKongress,type Kongress}from'@/lib/db'
-import Link from 'next/link'
+import{supabase,getAktuellerKongress,getKurse,getPreis,isFruehbucher,type Kongress,type Teilnehmer,type Kurs}from'@/lib/db'
+import{Btn,Badge,Loader,Modal,Field,PageHeader}from'@/lib/ui'
 
-type Stats={
-  tnGesamt:number;tnHeute:number;tnDieseWoche:number;
-  bezahlt:number;ausstehend:number;storniert:number;stornoAnzahl:number;
-  rechnungenErstellt:number;rechnungenVersendet:number;
-  sponsoren:number;sponsorenOffen:number;sponsorenBezahlt:number;
-  buchungenGesamt:number;
-}
-type KursBelegung={titel:string;count:number;uhrzeit:string|null;gruppe:string}
-type LetzteAnmeldung={id:number;vorname:string;nachname:string;email:string;registriert_am:string;land:string;betrag:number}
-type OffeneZahlung={teilnehmer_id:number;vorname:string;nachname:string;email:string;betrag:number;seit:string}
-type LandStats={land:string;count:number}
+type Buchung={id:number;kurs_id:number;gebuchter_preis:number;zahlungsstatus:string;rechnungsnummer:string|null;kurse:{titel:string;wochentag_datum:string;uhrzeit:string|null}}
 
-export default function Dashboard(){
+export default function TeilnehmerPage(){
   const[k,setK]=useState<Kongress|null>(null)
-  const[stats,setStats]=useState<Stats|null>(null)
-  const[belegung,setBelegung]=useState<KursBelegung[]>([])
-  const[letzteAnmeldungen,setLetzteAnmeldungen]=useState<LetzteAnmeldung[]>([])
-  const[offeneZahlungen,setOffeneZahlungen]=useState<OffeneZahlung[]>([])
-  const[laender,setLaender]=useState<LandStats[]>([])
+  const[kurse,setKurse]=useState<Kurs[]>([])
+  const[list,setList]=useState<Teilnehmer[]>([])
   const[loading,setLoading]=useState(true)
+  const[q,setQ]=useState('')
+  const[sortDir,setSortDir]=useState<'asc'|'desc'>('asc')
+  const[expanded,setExpanded]=useState<number|null>(null)
+  const[tnBuchungen,setTnBuchungen]=useState<Record<number,Buchung[]>>({})
+  const[edit,setEdit]=useState<Teilnehmer|null>(null)
+  const[saving,setSaving]=useState(false)
+  const[kursEdit,setKursEdit]=useState<Teilnehmer|null>(null)
+  const[kursLoading,setKursLoading]=useState(false)
+  const[kursSaving,setKursSaving]=useState(false)
+  const[konfliktMsg,setKonfliktMsg]=useState('')
 
-  useEffect(()=>{
-    getAktuellerKongress().then(async k=>{
-      if(!k){setLoading(false);return}
-      setK(k)
+  useEffect(()=>{getAktuellerKongress().then(async k=>{
+    if(!k){setLoading(false);return}
+    setK(k)
+    const[{data:tn},allKurse]=await Promise.all([
+      supabase.from('teilnehmer').select('*').eq('kongress_id',k.id).order('nachname'),
+      getKurse(k.id)
+    ])
+    setList((tn as Teilnehmer[])??[])
+    setKurse(allKurse)
+    setLoading(false)
+  })},[])
 
-      const[{data:buchungen},{data:sponsoren},{data:sponsRech},{data:rechnungen},{data:teilnehmer}]=await Promise.all([
-        supabase.from('buchungen').select('id,teilnehmer_id,gebuchter_preis,zahlungsstatus,gebucht_am,rechnungsnummer,rechnung_versendet_am,kurse(titel,uhrzeit,kurs_gruppe),teilnehmer(vorname,nachname,email,registriert_am,land)').eq('kongress_id',k.id),
-        supabase.from('sponsoren').select('id').eq('kongress_id',k.id),
-        supabase.from('sponsoren_rechnungen').select('zahlungsstatus,betrag_brutto').eq('kongress_id',k.id),
-        supabase.from('rechnungen').select('id,versendet_am').eq('kongress_id',k.id),
-        supabase.from('teilnehmer').select('id,vorname,nachname,email,registriert_am,land').eq('kongress_id',k.id).order('registriert_am',{ascending:false}),
-      ])
+  const filtered=list
+    .filter(t=>!q||`${t.vorname} ${t.nachname} ${t.email} ${t.oeak_nr}`.toLowerCase().includes(q.toLowerCase()))
+    .sort((a,b)=>sortDir==='asc'?a.nachname.localeCompare(b.nachname):b.nachname.localeCompare(a.nachname))
 
-      const b=(buchungen??[]) as any[]
-      const heute=new Date(); heute.setHours(0,0,0,0)
-      const wocheAgo=new Date(); wocheAgo.setDate(wocheAgo.getDate()-7)
+  async function toggleExpand(t:Teilnehmer){
+    if(expanded===t.id){setExpanded(null);return}
+    setExpanded(t.id)
+    if(!tnBuchungen[t.id]){
+      const{data}=await supabase.from('buchungen').select('id,kurs_id,gebuchter_preis,zahlungsstatus,rechnungsnummer,kurse(titel,wochentag_datum,uhrzeit)').eq('teilnehmer_id',t.id)
+      setTnBuchungen(prev=>({...prev,[t.id]:(data as unknown as Buchung[])??[]}))
+    }
+  }
 
-      // Stats
-      const tnIds=new Set(b.map((x:any)=>x.teilnehmer_id))
-      const bezahlt=b.filter((x:any)=>x.zahlungsstatus==='bezahlt').reduce((s:number,x:any)=>s+Number(x.gebuchter_preis),0)
-      const ausstehend=b.filter((x:any)=>x.zahlungsstatus==='ausstehend').reduce((s:number,x:any)=>s+Number(x.gebuchter_preis),0)
-      const tnHeute=(teilnehmer??[]).filter((t:any)=>new Date(t.registriert_am)>=heute).length
-      const tnWoche=(teilnehmer??[]).filter((t:any)=>new Date(t.registriert_am)>=wocheAgo).length
+  async function save(){
+    if(!edit)return;setSaving(true)
+    await supabase.from('teilnehmer').update({vorname:edit.vorname,nachname:edit.nachname,email:edit.email,strasse:edit.strasse,hausnummer:edit.hausnummer,postleitzahl:edit.postleitzahl,stadt:edit.stadt,land:edit.land,oeak_nr:edit.oeak_nr,ist_oegsmp_mitglied:edit.ist_oegsmp_mitglied}).eq('id',edit.id)
+    setList(prev=>prev.map(t=>t.id===edit.id?edit:t));setEdit(null);setSaving(false)
+  }
 
-      setStats({
-        tnGesamt:tnIds.size, tnHeute, tnDieseWoche:tnWoche,
-        bezahlt, ausstehend,
-        storniert:b.filter((x:any)=>x.zahlungsstatus==='storniert').reduce((s:number,x:any)=>s+Number(x.gebuchter_preis),0),
-        stornoAnzahl:b.filter((x:any)=>x.zahlungsstatus==='storniert').length,
-        rechnungenErstellt:(rechnungen??[]).length,
-        rechnungenVersendet:(rechnungen??[]).filter((r:any)=>r.versendet_am).length,
-        sponsoren:sponsoren?.length??0,
-        sponsorenOffen:(sponsRech??[]).filter((r:any)=>r.zahlungsstatus==='ausstehend').length,
-        sponsorenBezahlt:(sponsRech??[]).filter((r:any)=>r.zahlungsstatus==='bezahlt').reduce((s:number,r:any)=>s+Number(r.betrag_brutto??0),0),
-        buchungenGesamt:b.filter((x:any)=>x.zahlungsstatus!=='storniert').length,
+  async function del(id:number){
+    if(!confirm('Teilnehmer und alle Buchungen löschen? (DSGVO)'))return
+    await supabase.from('buchungen').delete().eq('teilnehmer_id',id)
+    await supabase.from('teilnehmer').delete().eq('id',id)
+    setList(prev=>prev.filter(t=>t.id!==id))
+    setExpanded(null)
+  }
+
+  async function openKursEdit(t:Teilnehmer){
+    setKursEdit(t);setKursLoading(true);setKonfliktMsg('')
+    const{data}=await supabase.from('buchungen').select('id,kurs_id,gebuchter_preis,zahlungsstatus,rechnungsnummer,kurse(titel,wochentag_datum,uhrzeit)').eq('teilnehmer_id',t.id)
+    setTnBuchungen(prev=>({...prev,[t.id]:(data as unknown as Buchung[])??[]}))
+    setKursLoading(false)
+  }
+
+  async function removeBuchung(tnId:number, b:Buchung){
+    // Wenn Rechnung vorhanden → nicht löschen, Hinweis
+    if(b.rechnungsnummer){
+      setKonfliktMsg(`"${b.kurse.titel}" hat bereits eine Rechnung (${b.rechnungsnummer}). Bitte über Rechnungen stornieren.`)
+      return
+    }
+    if(!confirm('Kurs wirklich entfernen?'))return
+    await supabase.from('buchungen').delete().eq('id',b.id)
+    setTnBuchungen(prev=>({...prev,[tnId]:prev[tnId].filter(x=>x.id!==b.id)}))
+    setKonfliktMsg('')
+  }
+
+  function checkKonflikt(kurs:Kurs, aktuell:Buchung[]): string {
+    if(kurs.exklusiv_gruppe){
+      const clash=aktuell.find(b=>{
+        const bk=kurse.find(k=>k.id===b.kurs_id)
+        return bk?.exklusiv_gruppe===kurs.exklusiv_gruppe&&b.kurs_id!==kurs.id&&b.zahlungsstatus!=='storniert'
       })
-
-      // Kursbelegung
-      const km:Record<string,{count:number;uhrzeit:string|null;gruppe:string}>={}
-      b.filter((x:any)=>x.zahlungsstatus!=='storniert').forEach((x:any)=>{
-        const t=x.kurse?.titel??'?'
-        if(!km[t])km[t]={count:0,uhrzeit:x.kurse?.uhrzeit??null,gruppe:x.kurse?.kurs_gruppe??''}
-        km[t].count++
-      })
-      setBelegung(Object.entries(km).map(([titel,d])=>({titel,count:d.count,uhrzeit:d.uhrzeit,gruppe:d.gruppe})).sort((a,b)=>b.count-a.count))
-
-      // Letzte Anmeldungen
-      const letzteIds=new Set<number>()
-      const letzte:LetzteAnmeldung[]=[]
-      for(const t of (teilnehmer??[]).slice(0,8)){
-        if(letzteIds.has(t.id))continue
-        letzteIds.add(t.id)
-        const betrag=b.filter((x:any)=>x.teilnehmer_id===t.id&&x.zahlungsstatus!=='storniert').reduce((s:number,x:any)=>s+Number(x.gebuchter_preis),0)
-        letzte.push({id:t.id,vorname:t.vorname,nachname:t.nachname,email:t.email,registriert_am:t.registriert_am,land:t.land,betrag})
+      if(clash){
+        const clashTitel=kurse.find(k=>k.id===clash.kurs_id)?.titel??'einen anderen Kurs'
+        return `Bitte zuerst "${clashTitel}" entfernen — diese Kurse laufen gleichzeitig.`
       }
-      setLetzteAnmeldungen(letzte)
-
-      // Offene Zahlungen
-      const offenMap:Record<number,{vorname:string;nachname:string;email:string;betrag:number;seit:string}>={}
-      b.filter((x:any)=>x.zahlungsstatus==='ausstehend').forEach((x:any)=>{
-        const tid=x.teilnehmer_id
-        if(!offenMap[tid])offenMap[tid]={vorname:x.teilnehmer?.vorname,nachname:x.teilnehmer?.nachname,email:x.teilnehmer?.email,betrag:0,seit:x.gebucht_am}
-        offenMap[tid].betrag+=Number(x.gebuchter_preis)
+    }
+    const num=parseInt(kurs.titel.replace(/\D/g,''))
+    if(!isNaN(num)&&['ps','ts'].includes(kurs.kurs_gruppe)){
+      const clash=aktuell.find(b=>{
+        const bk=kurse.find(k=>k.id===b.kurs_id)
+        return bk&&['ps','ts'].includes(bk.kurs_gruppe)&&bk.kurs_gruppe!==kurs.kurs_gruppe&&parseInt(bk.titel.replace(/\D/g,''))===num&&b.zahlungsstatus!=='storniert'
       })
-      setOffeneZahlungen(Object.entries(offenMap).map(([id,d])=>({teilnehmer_id:Number(id),...d})).sort((a,b)=>b.betrag-a.betrag).slice(0,8))
+      if(clash){
+        const pTitel=kurse.find(k=>k.id===clash.kurs_id)?.titel??''
+        return `Bitte zuerst "${pTitel}" entfernen — PS und TS mit gleicher Nummer laufen parallel.`
+      }
+    }
+    return ''
+  }
 
-      // Länderverteilung
-      const lm:Record<string,number>={}
-      ;(teilnehmer??[]).forEach((t:any)=>{lm[t.land]=(lm[t.land]??0)+1})
-      setLaender(Object.entries(lm).map(([land,count])=>({land,count})).sort((a,b)=>b.count-a.count).slice(0,6))
+  async function addKurs(kurs:Kurs){
+    if(!kursEdit||!k)return
+    const aktuell=tnBuchungen[kursEdit.id]??[]
+    // Bereits aktiv gebucht?
+    if(aktuell.find(b=>b.kurs_id===kurs.id&&b.zahlungsstatus!=='storniert')){
+      setKonfliktMsg('Dieser Kurs ist bereits gebucht.');return
+    }
+    // Storniert aber keine Stornorechnung? → nicht buchbar
+    const storniert=aktuell.find(b=>b.kurs_id===kurs.id&&b.zahlungsstatus==='storniert')
+    if(storniert&&storniert.rechnungsnummer){
+      setKonfliktMsg(`Dieser Kurs wurde storniert. Bitte zuerst in Rechnungen die Stornorechnung erstellen, dann kann er wieder gebucht werden.`)
+      return
+    }
+    const konflikt=checkKonflikt(kurs,aktuell)
+    if(konflikt){setKonfliktMsg(konflikt);return}
+    setKonfliktMsg('');setKursSaving(true)
+    const frueh=isFruehbucher(k)
+    const tn=list.find(t=>t.id===kursEdit.id)!
+    const preis=getPreis(kurs,tn.ist_oegsmp_mitglied,frueh)
+    const{data}=await supabase.from('buchungen').insert({
+      teilnehmer_id:kursEdit.id,kurs_id:kurs.id,
+      gebuchter_preis:preis,zahlungsstatus:'ausstehend',
+      kongress_id:k.id,gebucht_am:new Date().toISOString()
+    }).select('id,kurs_id,gebuchter_preis,zahlungsstatus,rechnungsnummer,kurse(titel,wochentag_datum,uhrzeit)').single()
+    if(data)setTnBuchungen(prev=>({...prev,[kursEdit.id]:[...(prev[kursEdit.id]??[]),data as unknown as Buchung]}))
+    setKursSaving(false)
+  }
 
-      setLoading(false)
-    })
-  },[])
-
-  if(loading)return(
-    <div className="min-h-screen bg-[#F7F6F3] flex items-center justify-center">
-      <p className="text-gray-400 text-sm">Dashboard wird geladen…</p>
-    </div>
-  )
-
-  const maxBelegung=Math.max(...belegung.map(b=>b.count),1)
-  const euro=(n:number)=>`€ ${n.toLocaleString('de-AT',{minimumFractionDigits:2,maximumFractionDigits:2})}`
+  const ST:Record<string,{label:string;v:'green'|'yellow'|'red'|'gray'}>={
+    bezahlt:{label:'Bezahlt',v:'green'},
+    ausstehend:{label:'Ausstehend',v:'yellow'},
+    storniert:{label:'Storniert',v:'red'}
+  }
 
   return(
-    <div className="min-h-screen bg-[#F7F6F3]">
-      {/* HEADER */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
-        <div>
-          <h1 className="text-lg font-bold text-gray-900">Dashboard</h1>
-          <p className="text-xs text-gray-400 mt-0.5">{k?.name} {k?.jahr} · {k?.ort}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-gray-400">{new Date().toLocaleDateString('de-AT',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</span>
-          {k&&<span className="bg-[#FFF9E6] border border-[#FFE082] rounded-xl px-3 py-1.5 text-xs font-semibold text-amber-700">{new Date(k.datum_von).toLocaleDateString('de-AT')} – {new Date(k.datum_bis).toLocaleDateString('de-AT')}</span>}
-        </div>
+    <div>
+      <PageHeader title="Teilnehmer" sub={`${filtered.length} Einträge`}>
+        <input placeholder="Name, E-Mail, ÖÄK-Nr." value={q} onChange={e=>setQ(e.target.value)} className="bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm w-60 focus:outline-none focus:border-[#FFBF00]"/>
+        <button onClick={()=>setSortDir(d=>d==='asc'?'desc':'asc')} className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm font-semibold hover:bg-gray-50 transition-all">
+          A-Z {sortDir==='asc'?'↑':'↓'}
+        </button>
+      </PageHeader>
+
+      <div className="p-6">
+        {loading?<Loader/>:(
+          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            {filtered.length===0&&<div className="text-center py-12 text-gray-400 text-sm">Keine Einträge</div>}
+            {filtered.map((t,i)=>{
+              const isOpen=expanded===t.id
+              const buchungen=tnBuchungen[t.id]??[]
+              return(
+                <div key={t.id} className={i>0?'border-t border-gray-100':''}>
+                  <div className={`flex items-center gap-4 px-4 py-3 cursor-pointer transition-all ${isOpen?'bg-[#FFF9E6]':'hover:bg-gray-50'}`} onClick={()=>toggleExpand(t)}>
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 border-2 transition-all ${isOpen?'border-[#FFBF00] bg-[#FFBF00] text-black':'border-gray-300 text-gray-400'}`}>{isOpen?'−':'+'}</div>
+                    <div className="flex-1 min-w-0">
+                      <span className="font-semibold text-sm text-gray-900">{t.nachname} {t.vorname}</span>
+                      <span className="text-xs text-gray-400 ml-3">{t.email}</span>
+                    </div>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      {t.ist_oegsmp_mitglied&&<Badge label="ÖGSMP" variant="blue"/>}
+                      <span className="text-xs text-gray-400">{new Date(t.registriert_am).toLocaleDateString('de-AT')}</span>
+                      <div className="flex gap-1.5" onClick={e=>e.stopPropagation()}>
+                        <Btn size="sm" variant="outline" onClick={()=>setEdit({...t})}>Bearbeiten</Btn>
+                        <Btn size="sm" variant="outline" onClick={()=>openKursEdit(t)}>Kurse</Btn>
+                        <Btn size="sm" variant="danger" onClick={()=>del(t.id)}>Löschen</Btn>
+                      </div>
+                    </div>
+                  </div>
+
+                  {isOpen&&(
+                    <div className="px-12 pb-4 bg-[#FFFDF5] border-t border-[#FFE082]/50">
+                      <div className="grid grid-cols-2 gap-6 pt-4">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">Persönliche Daten</p>
+                          <div className="space-y-1.5">
+                            {[['Adresse',`${t.strasse} ${t.hausnummer}`],['PLZ / Stadt',`${t.postleitzahl} ${t.stadt}`],['Land',t.land],['ÖÄK-Nr.',t.oeak_nr],['E-Mail',t.email],['ÖGSMP',t.ist_oegsmp_mitglied?'Ja':'Nein'],['Angemeldet',new Date(t.registriert_am).toLocaleDateString('de-AT')]].map(([l,v])=>(
+                              <div key={l} className="flex gap-3">
+                                <span className="text-gray-400 w-24 flex-shrink-0 text-xs">{l}</span>
+                                <span className="font-medium text-gray-800 text-xs">{v}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">Gebuchte Kurse</p>
+                          {buchungen.length===0?<p className="text-xs text-gray-400">Keine Kurse</p>:(
+                            <div className="space-y-1.5">
+                              {buchungen.map(b=>{
+                                const st=ST[b.zahlungsstatus]
+                                return(
+                                  <div key={b.id} className={`rounded-lg border p-2.5 ${b.zahlungsstatus==='storniert'?'border-red-200 bg-red-50 opacity-60':'border-gray-200 bg-white'}`}>
+                                    <div className="flex items-center justify-between gap-2">
+                                      <span className={`text-xs font-semibold ${b.zahlungsstatus==='storniert'?'line-through text-gray-400':'text-gray-800'}`}>{b.kurse.titel}</span>
+                                      <Badge label={st.label} variant={st.v}/>
+                                    </div>
+                                    <div className="flex justify-between mt-1">
+                                      <span className="text-[10px] text-gray-400">{b.kurse.uhrzeit??b.kurse.wochentag_datum}</span>
+                                      <span className="text-xs font-bold text-gray-700">€ {b.gebuchter_preis.toFixed(2)}</span>
+                                    </div>
+                                    {b.rechnungsnummer&&<div className="text-[10px] text-gray-400 mt-0.5 font-mono">{b.rechnungsnummer}</div>}
+                                  </div>
+                                )
+                              })}
+                              <div className="flex justify-between pt-1 border-t border-gray-200 text-xs font-bold mt-1">
+                                <span>Gesamt</span>
+                                <span>€ {buchungen.filter(b=>b.zahlungsstatus!=='storniert').reduce((s,b)=>s+b.gebuchter_preis,0).toFixed(2)}</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
-      <div className="p-6 space-y-6">
+      {/* DATEN BEARBEITEN */}
+      {edit&&(
+        <Modal title="Teilnehmer bearbeiten" onClose={()=>setEdit(null)}>
+          <div className="grid grid-cols-2 gap-3 mb-5">
+            <Field label="Vorname *" id="e-vn" value={edit.vorname} onChange={v=>setEdit({...edit,vorname:v})}/>
+            <Field label="Nachname *" id="e-nn" value={edit.nachname} onChange={v=>setEdit({...edit,nachname:v})}/>
+            <Field label="E-Mail *" id="e-em" value={edit.email} onChange={v=>setEdit({...edit,email:v})} span2 type="email"/>
+            <Field label="Straße *" id="e-st" value={edit.strasse} onChange={v=>setEdit({...edit,strasse:v})} span2/>
+            <Field label="Hausnummer *" id="e-hn" value={edit.hausnummer} onChange={v=>setEdit({...edit,hausnummer:v})}/>
+            <Field label="PLZ *" id="e-plz" value={edit.postleitzahl} onChange={v=>setEdit({...edit,postleitzahl:v})}/>
+            <Field label="Stadt *" id="e-ct" value={edit.stadt} onChange={v=>setEdit({...edit,stadt:v})} span2/>
+            <Field label="Land *" id="e-ld" value={edit.land} onChange={v=>setEdit({...edit,land:v})}/>
+            <Field label="ÖÄK-Nr. *" id="e-ok" value={edit.oeak_nr} onChange={v=>setEdit({...edit,oeak_nr:v})}/>
+            <div className="col-span-2"><label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={edit.ist_oegsmp_mitglied} onChange={e=>setEdit({...edit,ist_oegsmp_mitglied:e.target.checked})} className="accent-amber-500"/>
+              <span className="text-sm">Aktives ÖGSMP-Mitglied</span>
+            </label></div>
+          </div>
+          <div className="flex gap-3 justify-end">
+            <Btn variant="outline" onClick={()=>setEdit(null)}>Abbrechen</Btn>
+            <Btn onClick={save} disabled={saving}>{saving?'Speichert…':'Speichern'}</Btn>
+          </div>
+        </Modal>
+      )}
 
-        {/* KPI GRID */}
-        <div className="grid grid-cols-4 gap-4">
-          <KPI icon="👥" label="Teilnehmer gesamt" value={stats?.tnGesamt??0} sub={`+${stats?.tnHeute??0} heute · +${stats?.tnDieseWoche??0} diese Woche`} color="text-gray-900"/>
-          <KPI icon="💶" label="Bezahlt" value={euro(stats?.bezahlt??0)} sub={`von ${euro((stats?.bezahlt??0)+(stats?.ausstehend??0))} Gesamtumsatz`} color="text-green-700"/>
-          <KPI icon="⏳" label="Ausstehend" value={euro(stats?.ausstehend??0)} sub={`${stats?.offeneZahlungen??0} offene Zahlungen`} color="text-amber-700" alert/>
-          <KPI icon="📚" label="Buchungen" value={stats?.buchungenGesamt??0} sub={`${stats?.stornoAnzahl??0} Stornierungen`} color="text-gray-900"/>
-        </div>
-
-        <div className="grid grid-cols-4 gap-4">
-          <KPI icon="🧾" label="Rechnungen erstellt" value={stats?.rechnungenErstellt??0} sub={`${stats?.rechnungenVersendet??0} versendet`} color="text-gray-900"/>
-          <KPI icon="🏢" label="Sponsoren" value={stats?.sponsoren??0} sub={`${stats?.sponsorenOffen??0} Rechnungen offen`} color="text-gray-900"/>
-          <KPI icon="💰" label="Sponsor-Einnahmen" value={euro(stats?.sponsorenBezahlt??0)} sub="bezahlte Sponsoren-Rechnungen" color="text-green-700"/>
-          <KPI icon="❌" label="Stornowert" value={euro(stats?.storniert??0)} sub={`${stats?.stornoAnzahl??0} Buchungen storniert`} color="text-red-600"/>
-        </div>
-
-        <div className="grid grid-cols-3 gap-6">
-
-          {/* KURSBELEGUNG */}
-          <div className="col-span-2 bg-white border border-gray-200 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-2"><div className="w-1 h-4 bg-[#FFBF00] rounded-full"/><h2 className="text-xs font-bold uppercase tracking-widest text-gray-400">Kursbelegung</h2></div>
-              <span className="text-xs text-gray-400">{belegung.reduce((s,b)=>s+b.count,0)} Buchungen total</span>
-            </div>
-            <div className="space-y-3">
-              {belegung.map(b=>(
-                <div key={b.titel} className="flex items-center gap-3">
-                  <div className="w-48 flex-shrink-0">
-                    <p className="text-xs font-semibold text-gray-800 truncate">{b.titel}</p>
-                    {b.uhrzeit&&<p className="text-[10px] text-gray-400">{b.uhrzeit}</p>}
+      {/* KURSE BEARBEITEN */}
+      {kursEdit&&(
+        <Modal title={`Kurse — ${kursEdit.nachname} ${kursEdit.vorname}`} onClose={()=>{setKursEdit(null);setKonfliktMsg('')}} wide>
+          {kursLoading?<Loader/>:<>
+            {konfliktMsg&&(
+              <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm p-3 rounded-xl mb-4 flex items-start gap-2">
+                <span className="text-amber-500 font-bold flex-shrink-0">⚠</span>
+                <span>{konfliktMsg}</span>
+              </div>
+            )}
+            <div className="mb-5">
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Gebuchte Kurse</p>
+              {(tnBuchungen[kursEdit.id]??[]).length===0&&<p className="text-sm text-gray-400">Keine Kurse gebucht</p>}
+              {(tnBuchungen[kursEdit.id]??[]).map(b=>(
+                <div key={b.id} className={`flex items-center justify-between p-3 rounded-xl border mb-2 ${b.zahlungsstatus==='storniert'?'border-red-200 bg-red-50 opacity-60':'border-gray-200 bg-gray-50'}`}>
+                  <div>
+                    <p className={`text-sm font-semibold ${b.zahlungsstatus==='storniert'?'line-through text-gray-400':''}`}>{b.kurse.titel}</p>
+                    <p className="text-xs text-gray-400">{b.kurse.uhrzeit??b.kurse.wochentag_datum}
+                      {b.rechnungsnummer&&<span className="ml-2 font-mono text-[10px]">{b.rechnungsnummer}</span>}
+                      {b.zahlungsstatus==='storniert'&&<span className="ml-2 text-red-500 font-semibold">Storniert</span>}
+                    </p>
                   </div>
-                  <div className="flex-1 bg-gray-100 rounded-full h-3 relative">
-                    <div className={`h-3 rounded-full transition-all ${b.gruppe==='block'?'bg-[#FFBF00]':b.gruppe==='ps'?'bg-blue-400':'bg-purple-400'}`} style={{width:`${(b.count/maxBelegung)*100}%`}}/>
-                  </div>
-                  <div className="w-12 text-right">
-                    <span className="text-sm font-bold text-gray-700">{b.count}</span>
-                    <span className="text-[10px] text-gray-400 ml-1">{Math.round((b.count/Math.max(belegung[0]?.count,1))*100)}%</span>
+                  <div className="flex items-center gap-3">
+                    <span className="font-bold text-sm">€ {b.gebuchter_preis.toFixed(2)}</span>
+                    {b.zahlungsstatus!=='storniert'&&(
+                      b.rechnungsnummer
+                        ?<span className="text-xs text-gray-400 italic">→ Storno in Rechnungen</span>
+                        :<Btn size="sm" variant="danger" onClick={()=>{setKonfliktMsg('');removeBuchung(kursEdit.id,b)}}>Entfernen</Btn>
+                    )}
                   </div>
                 </div>
               ))}
-              {belegung.length===0&&<p className="text-sm text-gray-400 text-center py-4">Noch keine Buchungen</p>}
+              <div className="flex justify-between pt-2 border-t border-gray-100 mt-2 text-sm font-bold">
+                <span>Gesamt</span>
+                <span>€ {(tnBuchungen[kursEdit.id]??[]).filter(b=>b.zahlungsstatus!=='storniert').reduce((s,b)=>s+b.gebuchter_preis,0).toFixed(2)}</span>
+              </div>
             </div>
-            <div className="flex gap-4 mt-4 pt-4 border-t border-gray-100">
-              {[['bg-[#FFBF00]','Blockkurse'],['bg-blue-400','Praxisseminare'],['bg-purple-400','Theorieseminare']].map(([c,l])=>(
-                <div key={l} className="flex items-center gap-1.5"><div className={`w-3 h-3 rounded-full ${c}`}/><span className="text-[10px] text-gray-500">{l}</span></div>
-              ))}
-            </div>
-          </div>
 
-          {/* LÄNDERVERTEILUNG */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6">
-            <div className="flex items-center gap-2 mb-5"><div className="w-1 h-4 bg-[#FFBF00] rounded-full"/><h2 className="text-xs font-bold uppercase tracking-widest text-gray-400">Herkunft</h2></div>
-            <div className="space-y-3">
-              {laender.map((l,i)=>{
-                const maxL=laender[0]?.count??1
-                const colors=['bg-[#FFBF00]','bg-amber-400','bg-orange-300','bg-yellow-300','bg-lime-300','bg-green-300']
-                return(
-                  <div key={l.land} className="flex items-center gap-2">
-                    <div className="text-xs text-gray-700 w-24 truncate font-medium">{l.land}</div>
-                    <div className="flex-1 bg-gray-100 rounded-full h-2"><div className={`h-2 rounded-full ${colors[i]??'bg-gray-300'}`} style={{width:`${(l.count/maxL)*100}%`}}/></div>
-                    <div className="text-xs font-bold text-gray-700 w-5 text-right">{l.count}</div>
-                  </div>
-                )
-              })}
-              {laender.length===0&&<p className="text-sm text-gray-400">Noch keine Daten</p>}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-6">
-
-          {/* LETZTE ANMELDUNGEN */}
-          <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-              <div className="flex items-center gap-2"><div className="w-1 h-4 bg-[#FFBF00] rounded-full"/><h2 className="text-xs font-bold uppercase tracking-widest text-gray-400">Letzte Anmeldungen</h2></div>
-              <Link href="/admin/teilnehmer" className="text-xs text-amber-700 font-semibold hover:underline">Alle →</Link>
-            </div>
-            <div className="divide-y divide-gray-50">
-              {letzteAnmeldungen.map(t=>(
-                <div key={t.id} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50">
-                  <div className="w-8 h-8 bg-[#FFF9E6] border border-[#FFE082] rounded-full flex items-center justify-center text-xs font-bold text-amber-700 flex-shrink-0">
-                    {t.nachname.charAt(0)}{t.vorname.charAt(0)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{t.nachname} {t.vorname}</p>
-                    <p className="text-[10px] text-gray-400">{t.land} · {new Date(t.registriert_am).toLocaleDateString('de-AT',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</p>
-                  </div>
-                  <span className="text-sm font-bold text-gray-700 flex-shrink-0">{euro(t.betrag)}</span>
+            {/* Verfügbare Kurse */}
+            {kurse.filter(kurs=>{
+              const aktuell=tnBuchungen[kursEdit.id]??[]
+              const aktivGebucht=aktuell.find(b=>b.kurs_id===kurs.id&&b.zahlungsstatus!=='storniert')
+              const storniertOhneRechnung=aktuell.find(b=>b.kurs_id===kurs.id&&b.zahlungsstatus==='storniert'&&!b.rechnungsnummer)
+              return !aktivGebucht&&!storniertOhneRechnung
+            }).length>0&&(
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Kurs hinzubuchen</p>
+                <div className="space-y-2">
+                  {kurse.filter(kurs=>{
+                    const aktuell=tnBuchungen[kursEdit.id]??[]
+                    const aktivGebucht=aktuell.find(b=>b.kurs_id===kurs.id&&b.zahlungsstatus!=='storniert')
+                    const storniertOhneRechnung=aktuell.find(b=>b.kurs_id===kurs.id&&b.zahlungsstatus==='storniert'&&!b.rechnungsnummer)
+                    return !aktivGebucht&&!storniertOhneRechnung
+                  }).map(kurs=>{
+                    const frueh=k?isFruehbucher(k):false
+                    const tn=list.find(t=>t.id===kursEdit.id)!
+                    const preis=getPreis(kurs,tn.ist_oegsmp_mitglied,frueh)
+                    const hatKonflikt=checkKonflikt(kurs,tnBuchungen[kursEdit.id]??[])!==''
+                    const storniertMitRechnung=(tnBuchungen[kursEdit.id]??[]).find(b=>b.kurs_id===kurs.id&&b.zahlungsstatus==='storniert'&&b.rechnungsnummer)
+                    return(
+                      <div key={kurs.id} className={`flex items-center justify-between p-3 rounded-xl border transition-all ${hatKonflikt||storniertMitRechnung?'border-gray-200 bg-gray-50 opacity-50':'border-gray-200 hover:border-[#FFBF00] bg-white'}`}>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-800">{kurs.titel}</p>
+                          <p className="text-xs text-gray-400">{kurs.uhrzeit??kurs.wochentag_datum}</p>
+                          {storniertMitRechnung&&<p className="text-[10px] text-red-500 mt-0.5">Storniert — erst Stornorechnung in Rechnungen erstellen</p>}
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-bold text-sm">€ {preis.toFixed(2)}</span>
+                          <Btn size="sm" disabled={kursSaving||hatKonflikt||!!storniertMitRechnung} onClick={()=>addKurs(kurs)}>+ Hinzufügen</Btn>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
-              ))}
-              {letzteAnmeldungen.length===0&&<p className="text-sm text-gray-400 text-center py-8">Noch keine Anmeldungen</p>}
-            </div>
+              </div>
+            )}
+          </>}
+          <div className="flex justify-end mt-5">
+            <Btn variant="outline" onClick={()=>{setKursEdit(null);setKonfliktMsg('')}}>Schließen</Btn>
           </div>
-
-          {/* OFFENE ZAHLUNGEN */}
-          <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-              <div className="flex items-center gap-2"><div className="w-1 h-4 bg-amber-400 rounded-full"/><h2 className="text-xs font-bold uppercase tracking-widest text-gray-400">Offene Zahlungen</h2></div>
-              <Link href="/admin/buchungen" className="text-xs text-amber-700 font-semibold hover:underline">Alle →</Link>
-            </div>
-            <div className="divide-y divide-gray-50">
-              {offeneZahlungen.map(t=>(
-                <div key={t.teilnehmer_id} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50">
-                  <div className="w-8 h-8 bg-amber-50 border border-amber-200 rounded-full flex items-center justify-center text-xs font-bold text-amber-600 flex-shrink-0">
-                    {t.nachname.charAt(0)}{t.vorname.charAt(0)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{t.nachname} {t.vorname}</p>
-                    <p className="text-[10px] text-gray-400">seit {new Date(t.seit).toLocaleDateString('de-AT')}</p>
-                  </div>
-                  <span className="text-sm font-bold text-amber-700 flex-shrink-0">{euro(t.betrag)}</span>
-                </div>
-              ))}
-              {offeneZahlungen.length===0&&(
-                <div className="text-center py-8">
-                  <p className="text-2xl mb-2">✓</p>
-                  <p className="text-sm text-green-600 font-semibold">Alle Zahlungen eingegangen!</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* SCHNELLZUGRIFF */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6">
-          <div className="flex items-center gap-2 mb-4"><div className="w-1 h-4 bg-[#FFBF00] rounded-full"/><h2 className="text-xs font-bold uppercase tracking-widest text-gray-400">Schnellzugriff</h2></div>
-          <div className="grid grid-cols-6 gap-3">
-            {[
-              {href:'/admin/teilnehmer',icon:'👥',label:'Teilnehmer'},
-              {href:'/admin/buchungen',icon:'💶',label:'Buchungen'},
-              {href:'/admin/rechnungen',icon:'🧾',label:'Rechnungen'},
-              {href:'/admin/sponsoren',icon:'🏢',label:'Sponsoren'},
-              {href:'/admin/export',icon:'📥',label:'Export'},
-              {href:'/admin/kongress',icon:'🏆',label:'Kongress'},
-            ].map(item=>(
-              <Link key={item.href} href={item.href} className="flex flex-col items-center gap-2 p-4 rounded-xl border border-gray-200 hover:border-[#FFBF00] hover:bg-[#FFF9E6] transition-all group">
-                <span className="text-2xl">{item.icon}</span>
-                <span className="text-xs font-semibold text-gray-600 group-hover:text-amber-700">{item.label}</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-      </div>
-    </div>
-  )
-}
-
-function KPI({icon,label,value,sub,color,alert}:{icon:string;label:string;value:string|number;sub?:string;color:string;alert?:boolean}){
-  return(
-    <div className={`bg-white border rounded-2xl px-5 py-4 ${alert?'border-amber-200':'border-gray-200'}`}>
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-lg">{icon}</span>
-        <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">{label}</p>
-      </div>
-      <p className={`text-2xl font-extrabold ${color}`}>{value}</p>
-      {sub&&<p className="text-[10px] text-gray-400 mt-1">{sub}</p>}
+        </Modal>
+      )}
     </div>
   )
 }

@@ -4,16 +4,17 @@ export async function POST(req:NextRequest){
     const body=await req.json()
     const{Resend}=await import('resend')
     const resend=new Resend(process.env.RESEND_API_KEY)
-    const subject='Rechnung '+body.rechnungsnummer+' '+body.kongress_name
+    const{email,vorname,nachname,rechnungsnummer,kongress_name,html}=body
     await resend.emails.send({
       from:'info@sportmedizin-arlberg.at',
-      to:body.email,
+      to:email,
       bcc:'info@sportmedizin-arlberg.at',
-      subject:subject,
-      html:'<p>Sehr geehrte Damen und Herren, anbei Ihre Rechnung '+body.rechnungsnummer+'</p>',
+      subject:'Rechnung '+rechnungsnummer+' - '+kongress_name,
+      html: html || `<p>Sehr geehrte Damen und Herren,<br><br>anbei erhalten Sie Ihre Rechnung ${rechnungsnummer}.<br><br>Mit sportlichen Grüßen<br>Prof. h.c. Univ.-Doz. Dr. Günther Neumayr</p>`,
     })
     return NextResponse.json({ok:true})
   }catch(e){
+    console.error(e)
     return NextResponse.json({error:String(e)},{status:500})
   }
 }

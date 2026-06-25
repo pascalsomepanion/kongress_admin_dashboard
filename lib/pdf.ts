@@ -14,6 +14,7 @@ export type RechnungDaten = {
   kongress_name: string
   kongress_jahr: number
   intro_text: string
+  ohne_tabelle?: boolean
 }
 
 const A = {
@@ -47,7 +48,7 @@ export function buildRechnungHTML(r: RechnungDaten): string {
     </tr>`).join('')
 
   const summenBlock = r.mwst_typ === 'mit_mwst' ? `
-    <tr><td style="border:none;font-size:10px;padding:4px 0;color:#555">Bruttobetrag</td><td style="border:none;text-align:right;font-size:10px;padding:4px 0">${gesamtBrutto.toFixed(2)}</td></tr>
+    <tr><td style="border:none;font-size:10px;padding:4px 0;color:#555">Nettobetrag</td><td style="border:none;text-align:right;font-size:10px;padding:4px 0">${netto.toFixed(2)}</td></tr>
     <tr><td style="border:none;font-size:10px;padding:4px 0;color:#555">Ust. 20 % inkl.</td><td style="border:none;text-align:right;font-size:10px;padding:4px 0">${mwst.toFixed(2)}</td></tr>
     <tr><td style="border:none;font-weight:bold;font-size:12px;padding:6px 0 4px;border-top:2px solid #111">Rechnungsbetrag</td><td style="border:none;text-align:right;font-weight:bold;font-size:14px;padding:6px 0 4px;border-top:2px solid #111">${gesamtBrutto.toFixed(2)}</td></tr>`
   : `<tr><td style="border:none;font-weight:bold;font-size:12px;padding:6px 0;border-top:2px solid #111">Rechnungsbetrag netto</td><td style="border:none;text-align:right;font-weight:bold;font-size:14px;padding:6px 0;border-top:2px solid #111">${netto.toFixed(2)}</td></tr>`
@@ -118,6 +119,11 @@ export function buildRechnungHTML(r: RechnungDaten): string {
 </div>
 
 <!-- POSITIONEN -->
+${r.ohne_tabelle ? `
+<div style="margin-bottom:5mm;font-size:10px;padding:10px 0;border-bottom:1px solid #e0e0e0">
+  ${r.positionen.map(p => `<p style="font-weight:600;font-size:11px">${p.bezeichnung}</p>`).join('')}
+</div>
+` : `
 <table style="width:100%;border-collapse:collapse;font-size:10px;margin-bottom:5mm">
   <thead>
     <tr style="background:#f0f0f0">
@@ -130,7 +136,7 @@ export function buildRechnungHTML(r: RechnungDaten): string {
     </tr>
   </thead>
   <tbody>${posTR}</tbody>
-</table>
+</table>`}
 
 <!-- SUMMEN -->
 <div style="display:flex;justify-content:flex-end;margin-bottom:5mm">

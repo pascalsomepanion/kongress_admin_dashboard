@@ -1,60 +1,65 @@
 'use client'
-import { useEffect, useState } from 'react'
-import { supabase, getAktuellerKongress, type Kongress } from '@/lib/db'
-
-export default function Dashboard() {
-  const [k,setK]=useState<Kongress|null>(null)
-  const [stats,setStats]=useState({tn:0,b:0,bezahlt:0,offen:0,storno:0,sp:0,spOffen:0})
-  const [belegung,setBelegung]=useState<{titel:string;count:number}[]>([])
-  const [loading,setLoading]=useState(true)
-  useEffect(()=>{getAktuellerKongress().then(async k=>{
-    if(!k){setLoading(false);return};setK(k)
-    const[{data:b},{data:sp},{data:sr}]=await Promise.all([
-      supabase.from('buchungen').select('id,teilnehmer_id,gebuchter_preis,zahlungsstatus,kurse(titel)').eq('kongress_id',k.id),
-      supabase.from('sponsoren').select('id').eq('kongress_id',k.id),
-      supabase.from('sponsoren_rechnungen').select('zahlungsstatus').eq('kongress_id',k.id),
-    ])
-    const bArr=(b??[]) as any[]
-    const bezahlt=bArr.filter(x=>x.zahlungsstatus==='bezahlt').reduce((s:number,x:any)=>s+Number(x.gebuchter_preis),0)
-    const offen=bArr.filter(x=>x.zahlungsstatus==='ausstehend').reduce((s:number,x:any)=>s+Number(x.gebuchter_preis),0)
-    const km:Record<string,number>={}
-    bArr.forEach((x:any)=>{const t=x.kurse?.titel??'?';km[t]=(km[t]??0)+1})
-    setBelegung(Object.entries(km).map(([titel,count])=>({titel,count})).sort((a,b)=>b.count-a.count))
-    setStats({tn:new Set(bArr.map((x:any)=>x.teilnehmer_id)).size,b:bArr.length,bezahlt,offen,storno:bArr.filter((x:any)=>x.zahlungsstatus==='storniert').length,sp:sp?.length??0,spOffen:(sr??[]).filter((x:any)=>x.zahlungsstatus==='ausstehend').length})
-    setLoading(false)
-  })},[])
-  const max=Math.max(...belegung.map(b=>b.count),1)
+import{useEffect,useState}from'react'
+import{supabase,formatDE,type Kongress}from'@/lib/db'
+import{Btn,Badge,Loader,Modal,Field,PageHeader}from'@/lib/ui'
+export default function KongressPage(){
+  const[list,setList]=useState<Kongress[]>([]),[loading,setLoading]=useState(true),[edit,setEdit]=useState<Partial<Kongress>|null>(null),[saving,setSaving]=useState(false)
+  useEffect(()=>{supabase.from('kongresse').select('*').order('jahr',{ascending:false}).then(({data})=>{setList((data as Kongress[])??[]);setLoading(false)})},[])
+  async function save(){
+    if(!edit)return;setSaving(true)
+    if(edit.id){await supabase.from('kongresse').update(edit).eq('id',edit.id);setList(prev=>prev.map(k=>k.id===edit.id?{...k,...edit}as Kongress:k))}
+    else{const{data}=await supabase.from('kongresse').insert(edit).select().single();if(data)setList(prev=>[data as Kongress,...prev])}
+    setEdit(null);setSaving(false)
+  }
+  async function setStatus(id:number,status:string){
+    if(status==='aktiv')await supabase.from('kongresse').update({status:'archiviert'}).neq('id',id)
+    await supabase.from('kongresse').update({status}).eq('id',id)
+    const{data}=await supabase.from('kongresse').select('*').order('jahr',{ascending:false});setList((data as Kongress[])??[])
+  }
   return(
     <div>
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
-        <h1 className="text-lg font-bold text-gray-900">Dashboard</h1>
-        {k&&<span className="bg-[#FFF9E6] border border-[#FFE082] rounded-xl px-3 py-1.5 text-xs font-semibold text-amber-700">{k.name} {k.jahr}</span>}
-      </div>
-      <div className="p-6">
-        {loading?<div className="text-center py-16 text-gray-400">Wird geladen…</div>:<>
-          <div className="grid grid-cols-4 gap-4 mb-6">
-            {[['Teilnehmer',stats.tn,''],['Buchungen',stats.b,''],['Bezahlt',`€ ${stats.bezahlt.toLocaleString('de-AT',{minimumFractionDigits:2})}`,'text-green-700'],['Ausstehend',`€ ${stats.offen.toLocaleString('de-AT',{minimumFractionDigits:2})}`,'text-amber-700'],['Stornierungen',stats.storno,'text-red-600'],['Sponsoren',stats.sp,''],['Sponsoren offen',stats.spOffen,'text-amber-700'],['Gesamtumsatz',`€ ${(stats.bezahlt+stats.offen).toLocaleString('de-AT',{minimumFractionDigits:2})}`,'']].map(([l,v,c])=>(
-              <div key={l as string} className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-1">{l}</p>
-                <p className={`text-xl font-extrabold ${c}`}>{v}</p>
+      <PageHeader title="Kongress-Verwaltung"><Btn onClick={()=>setEdit({status:'Planung'})}>+ Neuer Kongress</Btn></PageHeader>
+      <div className="p-6 space-y-4">
+        {loading?<Loader/>:list.map(k=>(
+          <div key={k.id} className="bg-white border border-gray-200 rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div><h2 className="font-bold text-base">{k.name} {k.jahr}</h2><p className="text-xs text-gray-400 mt-0.5">{k.ort}{k.datum_von&&` · ${formatDE(k.datum_von)} – ${formatDE(k.datum_bis)}`}</p></div>
+              <div className="flex items-center gap-3">
+                <Badge label={k.status} variant={k.status==='aktiv'?'green':k.status==='archiviert'?'gray':'yellow'}/>
+                <Btn size="sm" variant="outline" onClick={()=>setEdit({...k})}>Bearbeiten</Btn>
+                {k.status!=='aktiv'&&<Btn size="sm" onClick={()=>setStatus(k.id,'aktiv')}>Als aktiv setzen</Btn>}
+                {k.status==='aktiv'&&<Btn size="sm" variant="danger" onClick={()=>setStatus(k.id,'archiviert')}>Archivieren</Btn>}
               </div>
-            ))}
-          </div>
-          <div className="bg-white border border-gray-200 rounded-2xl p-5">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Kursbelegung</h2>
-            <div className="space-y-2.5">
-              {belegung.map(b=>(
-                <div key={b.titel} className="flex items-center gap-3">
-                  <div className="text-xs text-gray-700 w-56 truncate">{b.titel}</div>
-                  <div className="flex-1 bg-gray-100 rounded-full h-2"><div className="bg-[#FFBF00] h-2 rounded-full" style={{width:`${(b.count/max)*100}%`}}/></div>
-                  <div className="text-xs font-bold text-gray-700 w-5 text-right">{b.count}</div>
-                </div>
+            </div>
+            <div className="grid grid-cols-4 gap-4 text-xs">
+              {[['Frühbucher bis',k.fruehbucher_bis?formatDE(k.fruehbucher_bis):'—'],['IBAN',k.iban],['Kontakt',k.kontakt_email],['Storno kostenlos bis',k.storno_kostenlos_bis?formatDE(k.storno_kostenlos_bis):'—']].map(([l,v])=>(
+                <div key={l}><span className="text-gray-400">{l}:</span><br/><span className="font-semibold">{v}</span></div>
               ))}
-              {belegung.length===0&&<p className="text-sm text-gray-400">Noch keine Buchungen</p>}
             </div>
           </div>
-        </>}
+        ))}
       </div>
+      {edit&&(
+        <Modal title={edit.id?'Kongress bearbeiten':'Neuer Kongress'} onClose={()=>setEdit(null)} wide>
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <Field label="Name *" id="c-n" value={edit.name??''} onChange={v=>setEdit({...edit,name:v})} span2/>
+            <Field label="Jahr *" id="c-j" value={String(edit.jahr??'')} onChange={v=>setEdit({...edit,jahr:parseInt(v)||undefined})}/>
+            <Field label="Ort" id="c-o" value={edit.ort??''} onChange={v=>setEdit({...edit,ort:v})}/>
+            <Field label="Datum von (JJJJ-MM-TT)" id="c-dv" value={edit.datum_von??''} onChange={v=>setEdit({...edit,datum_von:v})}/>
+            <Field label="Datum bis (JJJJ-MM-TT)" id="c-db" value={edit.datum_bis??''} onChange={v=>setEdit({...edit,datum_bis:v})}/>
+            <Field label="Frühbucher bis (JJJJ-MM-TT)" id="c-fb" value={edit.fruehbucher_bis??''} onChange={v=>setEdit({...edit,fruehbucher_bis:v})}/>
+            <Field label="Storno kostenlos bis" id="c-sk" value={edit.storno_kostenlos_bis??''} onChange={v=>setEdit({...edit,storno_kostenlos_bis:v})}/>
+            <Field label="Storno 50% bis" id="c-s5" value={edit.storno_50_bis??''} onChange={v=>setEdit({...edit,storno_50_bis:v})}/>
+            <Field label="IBAN" id="c-ib" value={edit.iban??''} onChange={v=>setEdit({...edit,iban:v})} span2/>
+            <Field label="BIC" id="c-bc" value={edit.bic??''} onChange={v=>setEdit({...edit,bic:v})}/>
+            <Field label="Kontoinhaber" id="c-ki" value={edit.kontoinhaber??''} onChange={v=>setEdit({...edit,kontoinhaber:v})}/>
+            <Field label="Kontakt-Email" id="c-em" value={edit.kontakt_email??''} onChange={v=>setEdit({...edit,kontakt_email:v})} span2 type="email"/>
+            <div className="col-span-2"><label className="block text-xs font-semibold text-gray-500 mb-1.5">Öffnungszeiten Sekretariat</label><textarea value={(edit as any).sekretariat_zeiten??''} onChange={e=>setEdit({...edit,sekretariat_zeiten:e.target.value} as any)} rows={4} className="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#FFBF00]"/></div>
+            <div className="col-span-2"><label className="block text-xs font-semibold text-gray-500 mb-1.5">Begrüßungstext</label><textarea value={edit.begruessung??''} onChange={e=>setEdit({...edit,begruessung:e.target.value})} rows={3} className="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#FFBF00]"/></div>
+          </div>
+          <div className="flex gap-3 justify-end"><Btn variant="outline" onClick={()=>setEdit(null)}>Abbrechen</Btn><Btn onClick={save} disabled={saving}>{saving?'Speichert…':'Speichern'}</Btn></div>
+        </Modal>
+      )}
     </div>
   )
 }

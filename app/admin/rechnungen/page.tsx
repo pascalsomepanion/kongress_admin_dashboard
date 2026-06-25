@@ -308,10 +308,7 @@ export default function RechnungenPage(){
                 {previewMode==='new'&&creating&&<Btn onClick={saveRechnung} disabled={saving}>{saving?'Speichert…':'✓ Speichern & Drucken'}</Btn>}
                 {previewMode==='storno'&&stornoGroup&&<Btn onClick={saveStorno} disabled={saving}>{saving?'Speichert…':'✓ Speichern & Drucken'}</Btn>}
                 {previewMode==='existing'&&<Btn onClick={()=>{const win=window.open('','_blank');if(win){win.document.write(previewHtml!);win.document.close();setTimeout(()=>win.print(),600)}}}>🖨 Drucken</Btn>}
-                {previewMode==='existing'&&<Btn variant="outline" disabled={sending===previewNr} onClick={async()=>{
-                  const g=groups.find(g=>g.buchungen.some(b=>b.rechnungsnummer===previewNr))
-                  if(g&&previewHtml)await sendEmail(g,previewNr,previewHtml)
-                }}>{sending===previewNr?'Sendet…':'📧 Senden'}</Btn>}
+                {previewMode==='existing'&&(()=>{const g=groups.find(g=>g.buchungen.some(b=>b.rechnungsnummer===previewNr));const bez=g?.buchungen.filter(b=>b.rechnungsnummer===previewNr&&b.zahlungsstatus!=='storniert').every(b=>b.zahlungsstatus==='bezahlt')??false;return bez?<Btn variant="outline" disabled={sending===previewNr} onClick={async()=>{if(g&&previewHtml)await sendEmail(g,previewNr,previewHtml)}}>{sending===previewNr?'Sendet…':'📧 Senden'}</Btn>:<span className="text-xs text-gray-400 italic">Senden erst nach Zahlungseingang</span>})()}
               </div>
             </div>
             <iframe srcDoc={previewHtml} className="flex-1 w-full rounded-b-2xl" style={{minHeight:'75vh'}}/>

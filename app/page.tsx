@@ -119,7 +119,7 @@ export default function AnmeldungPage() {
 
       await fetch('/api/send-confirmation', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: form.email.trim(), vorname: form.vorname, nachname: form.nachname, kongress_name: kongress.name, kongress_datum: formatDatum(kongress.datum_von, kongress.datum_bis), iban: kongress.iban, bic: kongress.bic, kontoinhaber: kongress.kontoinhaber, kontakt_email: kongress.kontakt_email, kurs_titel: Array.from(selected).map(id => kurse.find(k=>k.id===id)!.titel), gesamtbetrag }),
+        body: JSON.stringify({ email: form.email.trim(), vorname: form.vorname, nachname: form.nachname, oeak_nr: form.oeak_nr, ist_oegsmp_mitglied: form.ist_oegsmp_mitglied, kongress_name: kongress.name, kongress_jahr: kongress.jahr, kongress_datum: formatDatum(kongress.datum_von, kongress.datum_bis), kongress_start: new Date(kongress.datum_von).toLocaleDateString('de-AT', {weekday:'long',day:'numeric',month:'long',year:'numeric'})+', 15:00 Uhr', kongress_ende: new Date(kongress.datum_bis).toLocaleDateString('de-AT', {weekday:'long',day:'numeric',month:'long',year:'numeric'})+', 19:00 Uhr', iban: kongress.iban, bic: kongress.bic, kontoinhaber: kongress.kontoinhaber, kontakt_email: kongress.kontakt_email, fruehbucher_bis: formatDE(kongress.fruehbucher_bis), storno_kostenlos_bis: formatDE(kongress.storno_kostenlos_bis), storno_50_bis: formatDE(kongress.storno_50_bis), kurs_titel: Array.from(selected).map(id => kurse.find(k=>k.id===id)!.titel), gesamtbetrag }),
       })
       setStep('done'); window.scrollTo({top:0,behavior:'smooth'})
     } catch(e) {

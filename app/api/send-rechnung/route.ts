@@ -6,7 +6,7 @@ export async function POST(req:NextRequest){
   const{error}=await resend.emails.send({
     from:`${kongress_name} <anmeldung@sportmedizin-arlberg.at>`,
     to:email,bcc:'info@sportmedizin-arlberg.at',
-    subject:`Rechnung ${rechnungsnummer} – ${kongress_name}`,
+    subject:`Rechnung ${rechnungsnummer} - ${kongress_name}`,
     html:`<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px">
       <p style="font-size:15px;margin:0 0 12px">Sehr geehrte Damen und Herren,</p>
       <p style="font-size:13px;color:#555;line-height:1.6;margin:0 0 16px">anbei erhalten Sie Ihre Rechnung <strong>${rechnungsnummer}</strong>.<br>Bitte öffnen Sie den Anhang oder drucken Sie die Rechnung über den Admin-Bereich.</p>

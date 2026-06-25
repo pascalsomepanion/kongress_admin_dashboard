@@ -42,6 +42,7 @@ export type Kurs = {
   nur_als_ganzes: boolean
   kurs_gruppe: 'block' | 'ps' | 'ts'
   sort_order: number
+  uhrzeit: string | null
 }
 
 export type Teilnehmer = {

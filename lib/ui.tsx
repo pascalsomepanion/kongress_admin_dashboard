@@ -42,17 +42,17 @@ export function Loader() {
   return <div className="text-center py-16 text-gray-400 text-sm">Wird geladen…</div>
 }
 
-export function Modal({ title, onClose, children, wide }: {
-  title: string; onClose: () => void; children: React.ReactNode; wide?: boolean
+export function Modal({ title, onClose, children, wide, scroll }: {
+  title: string; onClose: () => void; children: React.ReactNode; wide?: boolean; scroll?: boolean
 }) {
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className={`bg-white rounded-2xl shadow-xl w-full my-4 ${wide ? 'max-w-4xl' : 'max-w-lg'}`}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className={`bg-white rounded-2xl shadow-xl w-full flex flex-col ${wide ? 'max-w-4xl' : 'max-w-lg'} ${scroll ? 'max-h-[90vh]' : ''}`}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
           <h2 className="font-bold text-base text-gray-900">{title}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl leading-none">×</button>
         </div>
-        <div className="px-6 py-5">{children}</div>
+        <div className={`px-6 py-5 ${scroll ? 'overflow-y-auto' : ''}`}>{children}</div>
       </div>
     </div>
   )

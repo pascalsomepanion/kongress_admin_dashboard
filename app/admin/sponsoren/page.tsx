@@ -21,6 +21,8 @@ export default function SponsorenPage(){
   const[stornoTarget,setStornoTarget]=useState<SponsorRechnung|null>(null)
   const[stornoPreview,setStornoPreview]=useState<string|null>(null)
   const[stornoNr,setStornoNr]=useState('')
+  const[viewPreview,setViewPreview]=useState<string|null>(null)
+  const[viewPreviewNr,setViewPreviewNr]=useState('')
 
   useEffect(()=>{getAktuellerKongress().then(async k=>{
     if(!k){setLoading(false);return};setK(k)
@@ -146,6 +148,35 @@ export default function SponsorenPage(){
     setRechnungen(prev=>prev.map(r=>r.id===id?{...r,zahlungsstatus:status}:r))
   }
 
+  async function loadPreview(r:SponsorRechnung){
+    if(!k)return
+    const sp=sponsoren.find(s=>s.id===r.sponsor_id)
+    if(!sp)return
+    const dateiname=`${k.jahr}/S_${sp.firmenname.replace(/[^a-zA-Z0-9]/g,'_')}_${r.rechnungsnummer}.html`
+    const{data}=await supabase.storage.from('rechnungen').download(dateiname)
+    if(data){
+      const text=await data.text()
+      setViewPreview(text);setViewPreviewNr(r.rechnungsnummer??'')
+    } else {
+      // Neu generieren
+      const brutto=r.betrag_brutto??r.betrag_netto
+      const netto=r.mwst_typ==='mit_mwst'?brutto/1.2:brutto
+      const html=buildRechnungHTML({
+        rechnungsnummer:r.rechnungsnummer??'',datum:new Date(r.erstellt_am).toLocaleDateString('de-AT'),
+        anrede:'Damen und Herren',empfaenger_name:sp.firmenname,
+        empfaenger_strasse:`${sp.strasse} ${sp.hausnummer??''}`,
+        empfaenger_plz_ort:`${sp.plz} ${sp.ort}`,empfaenger_land:sp.land,
+        empfaenger_kennung:sp.uid_nr?`UID: ${sp.uid_nr}`:undefined,
+        positionen:[{bezeichnung:r.beschreibung,menge:1,einzelpreis:brutto}],
+        mwst_typ:r.mwst_typ as MwstTyp,bezahlt:r.zahlungsstatus==='bezahlt',
+        kongress_name:k.name,kongress_jahr:k.jahr,
+        intro_text:`vielen Dank für Ihre Bereitschaft und Ihr Interesse, den ${k.name} ${k.jahr} zu fördern.`,
+        ohne_tabelle:true,
+      })
+      setViewPreview(html);setViewPreviewNr(r.rechnungsnummer??'')
+    }
+  }
+
   async function createStornoPreview(r:SponsorRechnung){
     if(!k)return
     const sp=sponsoren.find(s=>s.id===r.sponsor_id)
@@ -242,18 +273,13 @@ export default function SponsorenPage(){
                     </td>
                     <td className="px-4 py-3 text-xs text-gray-400">{versendet?new Date(versendet).toLocaleDateString('de-AT'):'—'}</td>
                     <td className="px-4 py-3"><div className="flex gap-1.5 flex-wrap">
+                      <Btn size="sm" variant="outline" onClick={()=>loadPreview(r)}>👁 Vorschau</Btn>
                       {!isStorno&&r.zahlungsstatus!=='bezahlt'&&!versendet&&(
                         <Btn size="sm" variant="outline" onClick={()=>startR(sp!,r)}>Bearbeiten</Btn>
                       )}
-                      {!isStorno&&r.zahlungsstatus!=='bezahlt'&&(
-                        <>
-                          {versendet
-                            ?<span className="text-[10px] text-gray-400 italic">Bereits versendet</span>
-                            :<Btn size="sm" variant="outline" disabled={sending===r.id} onClick={()=>sendR(r)}>{sending===r.id?'Sendet…':'📧 Senden'}</Btn>
-                          }
-                        </>
-                      )}
                       {!isStorno&&r.zahlungsstatus!=='bezahlt'&&<Btn size="sm" onClick={()=>setZahlungStatus(r.id,'bezahlt')}>✓ Bezahlt</Btn>}
+                      {!isStorno&&r.zahlungsstatus==='bezahlt'&&!versendet&&<Btn size="sm" variant="outline" disabled={sending===r.id} onClick={()=>sendR(r)}>{sending===r.id?'Sendet…':'📧 Senden'}</Btn>}
+                      {!isStorno&&r.zahlungsstatus==='bezahlt'&&versendet&&<span className="text-[10px] text-gray-400 italic">📧 {new Date(versendet).toLocaleDateString('de-AT')}</span>}
                       {!isStorno&&r.zahlungsstatus==='bezahlt'&&<Btn size="sm" variant="outline" onClick={()=>setZahlungStatus(r.id,'ausstehend')}>Zurücksetzen</Btn>}
                       {!isStorno&&(r.zahlungsstatus==='bezahlt'||versendet)&&<Btn size="sm" variant="danger" onClick={()=>createStornoPreview(r)}>Storno</Btn>}
                       {!isStorno&&!versendet&&r.zahlungsstatus!=='bezahlt'&&<Btn size="sm" variant="danger" onClick={()=>delRechnung(r)}>Löschen</Btn>}
@@ -338,6 +364,22 @@ export default function SponsorenPage(){
               </div>
             </div>
             <iframe srcDoc={preview} className="flex-1 w-full rounded-b-2xl" style={{minHeight:'75vh'}}/>
+          </div>
+        </div>
+      )}
+
+      {/* RECHNUNG VORSCHAU */}
+      {viewPreview&&(
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[92vh] flex flex-col shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b">
+              <div><h2 className="font-bold">Rechnung — {viewPreviewNr}</h2></div>
+              <div className="flex gap-3">
+                <Btn variant="outline" onClick={()=>setViewPreview(null)}>← Schließen</Btn>
+                <Btn onClick={()=>{const win=window.open('','_blank');if(win){win.document.write(viewPreview!);win.document.close();setTimeout(()=>win.print(),600)}}}>🖨 Drucken</Btn>
+              </div>
+            </div>
+            <iframe srcDoc={viewPreview} className="flex-1 w-full rounded-b-2xl" style={{minHeight:'75vh'}}/>
           </div>
         </div>
       )}

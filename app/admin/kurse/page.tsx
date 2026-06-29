@@ -42,6 +42,9 @@ export default function KursePage(){
             <Field label="Titel *" id="k-ti" value={edit.titel??''} onChange={v=>setEdit({...edit,titel:v})} span2/>
             <Field label="Datum/Wochentag" id="k-dt" value={edit.wochentag_datum??''} onChange={v=>setEdit({...edit,wochentag_datum:v})} span2/>
             <Field label="Uhrzeit (z.B. Mo-Fr, 08:00-09:30 Uhr)" id="k-uz" value={(edit as any).uhrzeit??''} onChange={v=>setEdit({...edit,uhrzeit:v} as any)} span2/>
+            <Field label="Untertitel (erscheint auf Bestätigung)" id="k-ut" value={(edit as any).untertitel??''} onChange={v=>setEdit({...edit,untertitel:v} as any)} span2/>
+            <Field label="DFP Punkte gesamt" id="k-dfp" value={String((edit as any).dfp_punkte_gesamt??'')} onChange={v=>setEdit({...edit,dfp_punkte_gesamt:parseFloat(v)||null} as any)}/>
+            <Field label="Einheiten gesamt" id="k-eg" value={String((edit as any).einheiten_gesamt??1)} onChange={v=>setEdit({...edit,einheiten_gesamt:parseInt(v)||1} as any)}/>
             <Field label="Frühbucher-Preis (€)" id="k-fp" value={String(edit.fruehbucher_preis??'')} onChange={v=>setEdit({...edit,fruehbucher_preis:parseFloat(v)||0})}/>
             <Field label="Normaltarif (€)" id="k-np" value={String(edit.spaetbucher_preis??'')} onChange={v=>setEdit({...edit,spaetbucher_preis:parseFloat(v)||0})}/>
             <Field label="Mitglied Frühbucher (€)" id="k-mf" value={String(edit.mitglied_fruehbucher_preis??'')} onChange={v=>setEdit({...edit,mitglied_fruehbucher_preis:parseFloat(v)||undefined})}/>

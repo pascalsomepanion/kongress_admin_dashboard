@@ -1,9 +1,9 @@
 'use client'
 import{useEffect,useState}from'react'
 import{supabase,getAktuellerKongress,getKurse,getPreis,isFruehbucher,type Kongress,type Teilnehmer,type Kurs}from'@/lib/db'
-import{Btn,Badge,Loader,Modal,Field,PageHeader,Table}from'@/lib/ui'
+import{Btn,Badge,Loader,Modal,Field,PageHeader}from'@/lib/ui'
 
-type Buchung={id:number;kurs_id:number;gebuchter_preis:number;zahlungsstatus:string;kurse:{titel:string;wochentag_datum:string;uhrzeit:string|null}}
+type Buchung={id:number;kurs_id:number;gebuchter_preis:number;zahlungsstatus:string;rechnungsnummer:string|null;kurse:{titel:string;wochentag_datum:string;uhrzeit:string|null}}
 
 export default function TeilnehmerPage(){
   const[k,setK]=useState<Kongress|null>(null)
@@ -20,6 +20,7 @@ export default function TeilnehmerPage(){
   const[kursLoading,setKursLoading]=useState(false)
   const[kursSaving,setKursSaving]=useState(false)
   const[konfliktMsg,setKonfliktMsg]=useState('')
+  const[fruehbucherOverride,setFruehbucherOverride]=useState(false)
 
   useEffect(()=>{getAktuellerKongress().then(async k=>{
     if(!k){setLoading(false);return}
@@ -41,7 +42,7 @@ export default function TeilnehmerPage(){
     if(expanded===t.id){setExpanded(null);return}
     setExpanded(t.id)
     if(!tnBuchungen[t.id]){
-      const{data}=await supabase.from('buchungen').select('id,kurs_id,gebuchter_preis,zahlungsstatus,kurse(titel,wochentag_datum,uhrzeit)').eq('teilnehmer_id',t.id)
+      const{data}=await supabase.from('buchungen').select('id,kurs_id,gebuchter_preis,zahlungsstatus,rechnungsnummer,kurse(titel,wochentag_datum,uhrzeit)').eq('teilnehmer_id',t.id)
       setTnBuchungen(prev=>({...prev,[t.id]:(data as unknown as Buchung[])??[]}))
     }
   }
@@ -62,40 +63,55 @@ export default function TeilnehmerPage(){
 
   async function openKursEdit(t:Teilnehmer){
     setKursEdit(t);setKursLoading(true);setKonfliktMsg('')
-    const{data}=await supabase.from('buchungen').select('id,kurs_id,gebuchter_preis,zahlungsstatus,kurse(titel,wochentag_datum,uhrzeit)').eq('teilnehmer_id',t.id)
+    const{data}=await supabase.from('buchungen').select('id,kurs_id,gebuchter_preis,zahlungsstatus,rechnungsnummer,kurse(titel,wochentag_datum,uhrzeit)').eq('teilnehmer_id',t.id)
     setTnBuchungen(prev=>({...prev,[t.id]:(data as unknown as Buchung[])??[]}))
     setKursLoading(false)
   }
 
-  async function removeBuchung(tnId:number, buchungId:number){
+  async function removeBuchung(tnId:number, b:Buchung){
+    // Wenn Rechnung vorhanden → nicht löschen, Hinweis
+    if(b.rechnungsnummer){
+      setKonfliktMsg(`"${b.kurse.titel}" hat bereits eine Rechnung (${b.rechnungsnummer}). Bitte über Rechnungen stornieren.`)
+      return
+    }
     if(!confirm('Kurs wirklich entfernen?'))return
-    await supabase.from('buchungen').delete().eq('id',buchungId)
-    setTnBuchungen(prev=>({...prev,[tnId]:prev[tnId].filter(b=>b.id!==buchungId)}))
+    await supabase.from('buchungen').delete().eq('id',b.id)
+    setTnBuchungen(prev=>({...prev,[tnId]:prev[tnId].filter(x=>x.id!==b.id)}))
     setKonfliktMsg('')
   }
 
-  function checkKonflikt(kurs:Kurs, aktuelleBuchungen:Buchung[]): string {
-    // Exklusiv-Gruppe (GK LIP <-> Work-Shop)
+  function checkKonflikt(kurs:Kurs, aktuell:Buchung[]): string {
+    // Regel 1: Exklusiv-Gruppe (GK LIP <-> Work-Shop)
     if(kurs.exklusiv_gruppe){
-      const clash=aktuelleBuchungen.find(b=>{
-        const gebuchterKurs=kurse.find(k=>k.id===b.kurs_id)
-        return gebuchterKurs?.exklusiv_gruppe===kurs.exklusiv_gruppe && b.kurs_id!==kurs.id && b.zahlungsstatus!=='storniert'
+      const clash=aktuell.find(b=>{
+        const bk=kurse.find(k=>k.id===b.kurs_id)
+        return bk?.exklusiv_gruppe===kurs.exklusiv_gruppe&&b.kurs_id!==kurs.id&&b.zahlungsstatus!=='storniert'
       })
       if(clash){
         const clashTitel=kurse.find(k=>k.id===clash.kurs_id)?.titel??'einen anderen Kurs'
-        return `Bitte zuerst "${clashTitel}" entfernen bevor "${kurs.titel}" gebucht werden kann — diese Kurse laufen gleichzeitig.`
+        return `Bitte zuerst "${clashTitel}" entfernen — diese Kurse laufen gleichzeitig.`
       }
     }
-    // PS/TS Konflikt (gleiche Nummer)
     const num=parseInt(kurs.titel.replace(/\D/g,''))
     if(!isNaN(num)&&['ps','ts'].includes(kurs.kurs_gruppe)){
-      const parallelKurs=aktuelleBuchungen.find(b=>{
+      // Regel 2: PS und TS gleiche Nummer laufen parallel
+      const clashParallel=aktuell.find(b=>{
         const bk=kurse.find(k=>k.id===b.kurs_id)
         return bk&&['ps','ts'].includes(bk.kurs_gruppe)&&bk.kurs_gruppe!==kurs.kurs_gruppe&&parseInt(bk.titel.replace(/\D/g,''))===num&&b.zahlungsstatus!=='storniert'
       })
-      if(parallelKurs){
-        const pTitel=kurse.find(k=>k.id===parallelKurs.kurs_id)?.titel??''
+      if(clashParallel){
+        const pTitel=kurse.find(k=>k.id===clashParallel.kurs_id)?.titel??''
         return `Bitte zuerst "${pTitel}" entfernen — PS und TS mit gleicher Nummer laufen parallel.`
+      }
+      // Regel 3: Themenidentische Paare (PS1=PS2, PS3=PS4, PS5=PS6 / TS1=TS2 etc.)
+      const pairNum=num%2===1?num+1:num-1
+      const clashPair=aktuell.find(b=>{
+        const bk=kurse.find(k=>k.id===b.kurs_id)
+        return bk&&bk.kurs_gruppe===kurs.kurs_gruppe&&parseInt(bk.titel.replace(/\D/g,''))===pairNum&&b.zahlungsstatus!=='storniert'
+      })
+      if(clashPair){
+        const pTitel=kurse.find(k=>k.id===clashPair.kurs_id)?.titel??''
+        return `Bitte zuerst "${pTitel}" entfernen — diese Kurse sind themenidentisch und können nicht zusammen gebucht werden.`
       }
     }
     return ''
@@ -104,26 +120,36 @@ export default function TeilnehmerPage(){
   async function addKurs(kurs:Kurs){
     if(!kursEdit||!k)return
     const aktuell=tnBuchungen[kursEdit.id]??[]
+    // Bereits aktiv gebucht?
     if(aktuell.find(b=>b.kurs_id===kurs.id&&b.zahlungsstatus!=='storniert')){
-      setKonfliktMsg('Dieser Kurs ist bereits gebucht.')
+      setKonfliktMsg('Dieser Kurs ist bereits gebucht.');return
+    }
+    // Storniert aber keine Stornorechnung? → nicht buchbar
+    const storniert=aktuell.find(b=>b.kurs_id===kurs.id&&b.zahlungsstatus==='storniert')
+    if(storniert&&storniert.rechnungsnummer){
+      setKonfliktMsg(`Dieser Kurs wurde storniert. Bitte zuerst in Rechnungen die Stornorechnung erstellen, dann kann er wieder gebucht werden.`)
       return
     }
     const konflikt=checkKonflikt(kurs,aktuell)
     if(konflikt){setKonfliktMsg(konflikt);return}
     setKonfliktMsg('');setKursSaving(true)
-    const frueh=isFruehbucher(k)
+    const frueh=fruehbucherOverride||isFruehbucher(k)
     const tn=list.find(t=>t.id===kursEdit.id)!
     const preis=getPreis(kurs,tn.ist_oegsmp_mitglied,frueh)
     const{data}=await supabase.from('buchungen').insert({
       teilnehmer_id:kursEdit.id,kurs_id:kurs.id,
       gebuchter_preis:preis,zahlungsstatus:'ausstehend',
       kongress_id:k.id,gebucht_am:new Date().toISOString()
-    }).select('id,kurs_id,gebuchter_preis,zahlungsstatus,kurse(titel,wochentag_datum,uhrzeit)').single()
+    }).select('id,kurs_id,gebuchter_preis,zahlungsstatus,rechnungsnummer,kurse(titel,wochentag_datum,uhrzeit)').single()
     if(data)setTnBuchungen(prev=>({...prev,[kursEdit.id]:[...(prev[kursEdit.id]??[]),data as unknown as Buchung]}))
     setKursSaving(false)
   }
 
-  const ST:Record<string,{label:string;v:'green'|'yellow'|'red'}>={bezahlt:{label:'Bezahlt',v:'green'},ausstehend:{label:'Ausstehend',v:'yellow'},storniert:{label:'Storniert',v:'red'}}
+  const ST:Record<string,{label:string;v:'green'|'yellow'|'red'|'gray'}>={
+    bezahlt:{label:'Bezahlt',v:'green'},
+    ausstehend:{label:'Ausstehend',v:'yellow'},
+    storniert:{label:'Storniert',v:'red'}
+  }
 
   return(
     <div>
@@ -133,27 +159,25 @@ export default function TeilnehmerPage(){
           A-Z {sortDir==='asc'?'↑':'↓'}
         </button>
       </PageHeader>
+
       <div className="p-6">
         {loading?<Loader/>:(
           <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-            {filtered.length===0&&<div className="text-center py-12 text-gray-400 text-sm">Keine Einträge gefunden.</div>}
+            {filtered.length===0&&<div className="text-center py-12 text-gray-400 text-sm">Keine Einträge</div>}
             {filtered.map((t,i)=>{
               const isOpen=expanded===t.id
               const buchungen=tnBuchungen[t.id]??[]
               return(
                 <div key={t.id} className={i>0?'border-t border-gray-100':''}>
-                  {/* HAUPTZEILE */}
                   <div className={`flex items-center gap-4 px-4 py-3 cursor-pointer transition-all ${isOpen?'bg-[#FFF9E6]':'hover:bg-gray-50'}`} onClick={()=>toggleExpand(t)}>
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 border-2 transition-all ${isOpen?'border-[#FFBF00] bg-[#FFBF00] text-black':'border-gray-300 text-gray-400'}`}>
-                      {isOpen?'−':'+'}
-                    </div>
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 border-2 transition-all ${isOpen?'border-[#FFBF00] bg-[#FFBF00] text-black':'border-gray-300 text-gray-400'}`}>{isOpen?'−':'+'}</div>
                     <div className="flex-1 min-w-0">
                       <span className="font-semibold text-sm text-gray-900">{t.nachname} {t.vorname}</span>
                       <span className="text-xs text-gray-400 ml-3">{t.email}</span>
                     </div>
                     <div className="flex items-center gap-3 flex-shrink-0">
                       {t.ist_oegsmp_mitglied&&<Badge label="ÖGSMP" variant="blue"/>}
-                      <span className="text-xs text-gray-400 hidden sm:block">{new Date(t.registriert_am).toLocaleDateString('de-AT')}</span>
+                      <span className="text-xs text-gray-400">{new Date(t.registriert_am).toLocaleDateString('de-AT')}</span>
                       <div className="flex gap-1.5" onClick={e=>e.stopPropagation()}>
                         <Btn size="sm" variant="outline" onClick={()=>setEdit({...t})}>Bearbeiten</Btn>
                         <Btn size="sm" variant="outline" onClick={()=>openKursEdit(t)}>Kurse</Btn>
@@ -162,14 +186,12 @@ export default function TeilnehmerPage(){
                     </div>
                   </div>
 
-                  {/* AUFGEKLAPPTE DETAILS */}
                   {isOpen&&(
                     <div className="px-12 pb-4 bg-[#FFFDF5] border-t border-[#FFE082]/50">
                       <div className="grid grid-cols-2 gap-6 pt-4">
-                        {/* PERSÖNLICHE DATEN */}
                         <div>
                           <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">Persönliche Daten</p>
-                          <div className="space-y-1.5 text-sm">
+                          <div className="space-y-1.5">
                             {[['Adresse',`${t.strasse} ${t.hausnummer}`],['PLZ / Stadt',`${t.postleitzahl} ${t.stadt}`],['Land',t.land],['ÖÄK-Nr.',t.oeak_nr],['E-Mail',t.email],['ÖGSMP',t.ist_oegsmp_mitglied?'Ja':'Nein'],['Angemeldet',new Date(t.registriert_am).toLocaleDateString('de-AT')]].map(([l,v])=>(
                               <div key={l} className="flex gap-3">
                                 <span className="text-gray-400 w-24 flex-shrink-0 text-xs">{l}</span>
@@ -178,27 +200,27 @@ export default function TeilnehmerPage(){
                             ))}
                           </div>
                         </div>
-                        {/* BUCHUNGEN */}
                         <div>
                           <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">Gebuchte Kurse</p>
-                          {buchungen.length===0?<p className="text-xs text-gray-400">Keine Kurse gebucht</p>:(
-                            <div className="space-y-2">
+                          {buchungen.length===0?<p className="text-xs text-gray-400">Keine Kurse</p>:(
+                            <div className="space-y-1.5">
                               {buchungen.map(b=>{
-                                const st=ST[b.zahlungsstatus]??ST['ausstehend']
+                                const st=ST[b.zahlungsstatus]
                                 return(
-                                  <div key={b.id} className={`rounded-lg border p-2.5 ${b.zahlungsstatus==='storniert'?'border-red-200 bg-red-50':'border-gray-200 bg-white'}`}>
+                                  <div key={b.id} className={`rounded-lg border p-2.5 ${b.zahlungsstatus==='storniert'?'border-red-200 bg-red-50 opacity-60':'border-gray-200 bg-white'}`}>
                                     <div className="flex items-center justify-between gap-2">
-                                      <span className="text-xs font-semibold text-gray-800">{b.kurse.titel}</span>
+                                      <span className={`text-xs font-semibold ${b.zahlungsstatus==='storniert'?'line-through text-gray-400':'text-gray-800'}`}>{b.kurse.titel}</span>
                                       <Badge label={st.label} variant={st.v}/>
                                     </div>
-                                    <div className="flex items-center justify-between mt-1">
+                                    <div className="flex justify-between mt-1">
                                       <span className="text-[10px] text-gray-400">{b.kurse.uhrzeit??b.kurse.wochentag_datum}</span>
                                       <span className="text-xs font-bold text-gray-700">€ {b.gebuchter_preis.toFixed(2)}</span>
                                     </div>
+                                    {b.rechnungsnummer&&<div className="text-[10px] text-gray-400 mt-0.5 font-mono">{b.rechnungsnummer}</div>}
                                   </div>
                                 )
                               })}
-                              <div className="flex justify-between pt-1 border-t border-gray-200 text-xs font-bold">
+                              <div className="flex justify-between pt-1 border-t border-gray-200 text-xs font-bold mt-1">
                                 <span>Gesamt</span>
                                 <span>€ {buchungen.filter(b=>b.zahlungsstatus!=='storniert').reduce((s,b)=>s+b.gebuchter_preis,0).toFixed(2)}</span>
                               </div>
@@ -242,7 +264,7 @@ export default function TeilnehmerPage(){
 
       {/* KURSE BEARBEITEN */}
       {kursEdit&&(
-        <Modal title={`Kurse — ${kursEdit.nachname} ${kursEdit.vorname}`} onClose={()=>{setKursEdit(null);setKonfliktMsg('')}} wide>
+        <Modal title={`Kurse — ${kursEdit.nachname} ${kursEdit.vorname}`} onClose={()=>{setKursEdit(null);setKonfliktMsg('')}} wide scroll>
           {kursLoading?<Loader/>:<>
             {konfliktMsg&&(
               <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm p-3 rounded-xl mb-4 flex items-start gap-2">
@@ -250,19 +272,25 @@ export default function TeilnehmerPage(){
                 <span>{konfliktMsg}</span>
               </div>
             )}
-            {/* Gebuchte Kurse */}
             <div className="mb-5">
               <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Gebuchte Kurse</p>
               {(tnBuchungen[kursEdit.id]??[]).length===0&&<p className="text-sm text-gray-400">Keine Kurse gebucht</p>}
               {(tnBuchungen[kursEdit.id]??[]).map(b=>(
-                <div key={b.id} className={`flex items-center justify-between p-3 rounded-xl border mb-2 ${b.zahlungsstatus==='storniert'?'border-red-200 bg-red-50':'border-gray-200 bg-gray-50'}`}>
+                <div key={b.id} className={`flex items-center justify-between p-3 rounded-xl border mb-2 ${b.zahlungsstatus==='storniert'?'border-red-200 bg-red-50 opacity-60':'border-gray-200 bg-gray-50'}`}>
                   <div>
-                    <p className="text-sm font-semibold">{b.kurse.titel}</p>
-                    <p className="text-xs text-gray-400">{b.kurse.uhrzeit??b.kurse.wochentag_datum} · <span className={b.zahlungsstatus==='bezahlt'?'text-green-600':b.zahlungsstatus==='storniert'?'text-red-500':'text-amber-600'}>{b.zahlungsstatus}</span></p>
+                    <p className={`text-sm font-semibold ${b.zahlungsstatus==='storniert'?'line-through text-gray-400':''}`}>{b.kurse.titel}</p>
+                    <p className="text-xs text-gray-400">{b.kurse.uhrzeit??b.kurse.wochentag_datum}
+                      {b.rechnungsnummer&&<span className="ml-2 font-mono text-[10px]">{b.rechnungsnummer}</span>}
+                      {b.zahlungsstatus==='storniert'&&<span className="ml-2 text-red-500 font-semibold">Storniert</span>}
+                    </p>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="font-bold text-sm">€ {b.gebuchter_preis.toFixed(2)}</span>
-                    <Btn size="sm" variant="danger" onClick={()=>{setKonfliktMsg('');removeBuchung(kursEdit.id,b.id)}}>Entfernen</Btn>
+                    {b.zahlungsstatus!=='storniert'&&(
+                      b.rechnungsnummer
+                        ?<span className="text-xs text-gray-400 italic">→ Storno in Rechnungen</span>
+                        :<Btn size="sm" variant="danger" onClick={()=>{setKonfliktMsg('');removeBuchung(kursEdit.id,b)}}>Entfernen</Btn>
+                    )}
                   </div>
                 </div>
               ))}
@@ -272,35 +300,51 @@ export default function TeilnehmerPage(){
               </div>
             </div>
 
-            {/* Kurs hinzufügen */}
-            {kurse.filter(kurs=>!(tnBuchungen[kursEdit.id]??[]).find(b=>b.kurs_id===kurs.id&&b.zahlungsstatus!=='storniert')).length>0&&(
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Kurs hinzubuchen</p>
-                <div className="space-y-2">
-                  {kurse.filter(kurs=>!(tnBuchungen[kursEdit.id]??[]).find(b=>b.kurs_id===kurs.id&&b.zahlungsstatus!=='storniert')).map(kurs=>{
-                    const frueh=k?isFruehbucher(k):false
-                    const tn=list.find(t=>t.id===kursEdit.id)!
-                    const preis=getPreis(kurs,tn.ist_oegsmp_mitglied,frueh)
-                    const hatKonflikt=checkKonflikt(kurs,tnBuchungen[kursEdit.id]??[])!==''
-                    return(
-                      <div key={kurs.id} className={`flex items-center justify-between p-3 rounded-xl border transition-all ${hatKonflikt?'border-gray-200 bg-gray-50 opacity-60':'border-gray-200 hover:border-[#FFBF00] bg-white'}`}>
-                        <div>
-                          <p className="text-sm font-semibold text-gray-800">{kurs.titel}</p>
-                          <p className="text-xs text-gray-400">{kurs.uhrzeit??kurs.wochentag_datum}</p>
+            {/* Verfügbare Kurse */}
+            {(()=>{
+              const aktuell=tnBuchungen[kursEdit.id]??[]
+              const verfuegbar=kurse.filter(kurs=>{
+                const aktivGebucht=aktuell.find(b=>b.kurs_id===kurs.id&&b.zahlungsstatus!=='storniert')
+                const storniertOhneRechnung=aktuell.find(b=>b.kurs_id===kurs.id&&b.zahlungsstatus==='storniert'&&!b.rechnungsnummer)
+                const hatKonflikt=checkKonflikt(kurs,aktuell)!==''
+                const storniertMitRechnung=aktuell.find(b=>b.kurs_id===kurs.id&&b.zahlungsstatus==='storniert'&&b.rechnungsnummer)
+                return !aktivGebucht&&!storniertOhneRechnung&&!hatKonflikt&&!storniertMitRechnung
+              })
+              if(verfuegbar.length===0)return null
+              return(
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Kurs hinzubuchen</p>
+                    <label className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${fruehbucherOverride?'border-[#FFBF00] bg-[#FFF9E6] text-amber-700':'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
+                      <input type="checkbox" checked={fruehbucherOverride} onChange={e=>setFruehbucherOverride(e.target.checked)} className="accent-amber-500"/>
+                      Frühbucherpreis gewähren
+                    </label>
+                  </div>
+                  <div className="space-y-2">
+                    {verfuegbar.map(kurs=>{
+                      const frueh=fruehbucherOverride||(k?isFruehbucher(k):false)
+                      const tn=list.find(t=>t.id===kursEdit.id)!
+                      const preis=getPreis(kurs,tn.ist_oegsmp_mitglied,frueh)
+                      return(
+                        <div key={kurs.id} className="flex items-center justify-between p-3 rounded-xl border border-gray-200 hover:border-[#FFBF00] bg-white transition-all">
+                          <div>
+                            <p className="text-sm font-semibold text-gray-800">{kurs.titel}</p>
+                            <p className="text-xs text-gray-400">{kurs.uhrzeit??kurs.wochentag_datum}</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="font-bold text-sm">€ {preis.toFixed(2)}</span>
+                            <Btn size="sm" disabled={kursSaving} onClick={()=>addKurs(kurs)}>+ Hinzufügen</Btn>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <span className="font-bold text-sm">€ {preis.toFixed(2)}</span>
-                          <Btn size="sm" disabled={kursSaving} onClick={()=>addKurs(kurs)}>+ Hinzufügen</Btn>
-                        </div>
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
+                  </div>
                 </div>
-              </div>
-            )}
+              )
+            })()}
           </>}
           <div className="flex justify-end mt-5">
-            <Btn variant="outline" onClick={()=>{setKursEdit(null);setKonfliktMsg('')}}>Schließen</Btn>
+            <Btn variant="outline" onClick={()=>{setKursEdit(null);setKonfliktMsg('');setFruehbucherOverride(false)}}>Schließen</Btn>
           </div>
         </Modal>
       )}

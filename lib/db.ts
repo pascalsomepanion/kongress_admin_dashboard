@@ -43,6 +43,10 @@ export type Kurs = {
   kurs_gruppe: 'block' | 'ps' | 'ts'
   sort_order: number
   uhrzeit: string | null
+  untertitel: string | null
+  dfp_punkte_gesamt: number | null
+  einheiten_gesamt: number
+  ist_pflichtprogramm: boolean
 }
 
 export type Teilnehmer = {

@@ -208,7 +208,7 @@ export default function AnmeldungPage(){
         borderBottom:'1px solid rgba(255,200,3,0.12)',
         animation:'fadeDown 0.5s ease',
       }}>
-        <div style={{maxWidth:760,margin:'0 auto',padding:'0 24px'}}>
+        <div style={{maxWidth:760,margin:'0 auto',padding:'0 20px'}}>
           {/* TOP: Anmeldung badge */}
           <div style={{display:'flex',alignItems:'center',justifyContent:'center',paddingTop:14,paddingBottom:6}}>
             <div style={{
@@ -279,7 +279,7 @@ export default function AnmeldungPage(){
           </div>
 
           {/* PREISTABELLE */}
-          <div style={{background:'rgba(255,255,255,0.88)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.5)',boxShadow:'0 8px 40px rgba(10,22,40,0.15)',overflow:'hidden'}}>
+          <div style={{background:'rgba(255,255,255,0.82)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.5)',boxShadow:'0 8px 40px rgba(10,22,40,0.15)',overflow:'hidden'}}>
             <div style={{background:'rgba(10,22,40,0.06)',borderBottom:'1px solid rgba(10,22,40,0.06)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
               <div style={{width:3,height:14,background:'#ffc803',borderRadius:2}}/>
               <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'#6b7280'}}>Preisübersicht</span>
@@ -334,7 +334,7 @@ export default function AnmeldungPage(){
           </div>
 
           {/* PERSÖNLICHE DATEN */}
-          <div style={{background:'rgba(255,255,255,0.88)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.5)',boxShadow:'0 8px 40px rgba(10,22,40,0.15)',overflow:'hidden'}}>
+          <div style={{background:'rgba(255,255,255,0.82)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.5)',boxShadow:'0 8px 40px rgba(10,22,40,0.15)',overflow:'hidden'}}>
             <div style={{background:'rgba(10,22,40,0.06)',borderBottom:'1px solid rgba(10,22,40,0.06)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
               <div style={{width:3,height:14,background:'#ffc803',borderRadius:2}}/>
               <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'#6b7280'}}>Persönliche Daten</span>
@@ -367,7 +367,7 @@ export default function AnmeldungPage(){
           </div>
 
           {/* KURSAUSWAHL */}
-          <div style={{background:'rgba(255,255,255,0.88)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.5)',boxShadow:'0 8px 40px rgba(10,22,40,0.15)',overflow:'hidden'}}>
+          <div style={{background:'rgba(255,255,255,0.82)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.5)',boxShadow:'0 8px 40px rgba(10,22,40,0.15)',overflow:'hidden'}}>
             <div style={{background:'rgba(10,22,40,0.06)',borderBottom:'1px solid rgba(10,22,40,0.06)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
               <div style={{width:3,height:14,background:'#ffc803',borderRadius:2}}/>
               <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'#6b7280'}}>Kursauswahl</span>
@@ -417,7 +417,7 @@ export default function AnmeldungPage(){
 
         {/* ── STEP 2 ── */}
         {step==='confirm'&&<>
-          <div style={{background:'rgba(255,255,255,0.88)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.5)',boxShadow:'0 8px 40px rgba(10,22,40,0.15)',overflow:'hidden'}}>
+          <div style={{background:'rgba(255,255,255,0.82)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.5)',boxShadow:'0 8px 40px rgba(10,22,40,0.15)',overflow:'hidden'}}>
             <div style={{background:'rgba(10,22,40,0.06)',borderBottom:'1px solid rgba(10,22,40,0.06)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
               <div style={{width:3,height:14,background:'#ffc803',borderRadius:2}}/>
               <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'#6b7280'}}>Persönliche Daten</span>
@@ -432,7 +432,7 @@ export default function AnmeldungPage(){
             </div>
           </div>
 
-          <div style={{background:'rgba(255,255,255,0.88)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.5)',boxShadow:'0 8px 40px rgba(10,22,40,0.15)',overflow:'hidden'}}>
+          <div style={{background:'rgba(255,255,255,0.82)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.5)',boxShadow:'0 8px 40px rgba(10,22,40,0.15)',overflow:'hidden'}}>
             <div style={{background:'rgba(10,22,40,0.06)',borderBottom:'1px solid rgba(10,22,40,0.06)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
               <div style={{width:3,height:14,background:'#ffc803',borderRadius:2}}/>
               <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'#6b7280'}}>Gebuchte Kurse</span>

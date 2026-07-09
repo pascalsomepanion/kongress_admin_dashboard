@@ -1,69 +1,51 @@
 'use client'
-import{useState}from'react'
-import{useRouter}from'next/navigation'
-import{supabase}from'@/lib/db'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/db'
 
-export default function LoginPage(){
-  const router=useRouter()
-  const[email,setEmail]=useState('')
-  const[password,setPassword]=useState('')
-  const[error,setError]=useState('')
-  const[loading,setLoading]=useState(false)
+export default function LoginPage() {
+  const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  async function login(){
-    if(!email||!password)return
-    setLoading(true);setError('')
-    const{error:e}=await supabase.auth.signInWithPassword({email,password})
-    if(e){setError('E-Mail oder Passwort ungültig');setLoading(false);return}
+  async function login() {
+    if (!email || !password) { setError('Bitte E-Mail und Passwort eingeben.'); return }
+    setLoading(true); setError('')
+    const { error: err } = await supabase.auth.signInWithPassword({ email, password })
+    if (err) { setError('E-Mail oder Passwort falsch.'); setLoading(false); return }
     router.push('/admin')
   }
 
-  return(
-    <div style={{minHeight:'100vh',background:'var(--navy)',display:'flex',alignItems:'center',justifyContent:'center',padding:24,position:'relative',overflow:'hidden'}}>
-      <div style={{position:'absolute',inset:0,background:'radial-gradient(ellipse at 50% 0%, rgba(255,200,3,0.07) 0%, transparent 60%)'}}/>
-      <div style={{width:'100%',maxWidth:400,position:'relative',zIndex:1}}>
-        {/* Logo */}
-        <div style={{textAlign:'center',marginBottom:40}}>
-          <div style={{
-            width:52,height:52,background:'var(--primary)',borderRadius:16,
-            display:'flex',alignItems:'center',justifyContent:'center',
-            fontSize:18,fontWeight:900,color:'var(--navy)',margin:'0 auto 16px',
-            boxShadow:'0 8px 32px rgba(255,200,3,0.3)',
-          }}>SM</div>
-          <p style={{fontSize:11,fontWeight:600,letterSpacing:'0.2em',textTransform:'uppercase',color:'rgba(255,255,255,0.3)',marginBottom:6}}>Admin</p>
-          <h1 style={{fontSize:20,fontWeight:700,color:'var(--white)'}}>Kongress Sportmedizin</h1>
+  return (
+    <main className="min-h-screen bg-[#F7F6F3] flex items-center justify-center px-4">
+      <div className="w-full max-w-sm">
+        <div className="bg-[#FFBF00] rounded-2xl px-8 py-7 mb-4">
+          <p className="text-[10px] font-bold tracking-widest uppercase text-black/50 mb-1">Sportmedizin Arlberg</p>
+          <h1 className="text-xl font-extrabold text-black">Admin-Bereich</h1>
+          <p className="text-black/50 text-xs mt-1">Nur für autorisierte Benutzer</p>
         </div>
-
-        {/* Form */}
-        <div style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'var(--radius-xl)',padding:'32px 28px',backdropFilter:'blur(10px)'}}>
-          {error&&<div style={{background:'rgba(239,68,68,0.1)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:'var(--radius)',padding:'12px 14px',fontSize:13,color:'#fca5a5',marginBottom:20}}>{error}</div>}
-          <div style={{marginBottom:16}}>
-            <label style={{display:'block',fontSize:11,fontWeight:600,color:'rgba(255,255,255,0.4)',marginBottom:7,letterSpacing:'0.08em'}}>E-Mail</label>
-            <input type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&login()} style={{
-              width:'100%',background:'rgba(255,255,255,0.06)',border:'1.5px solid rgba(255,255,255,0.1)',
-              borderRadius:'var(--radius)',padding:'11px 14px',fontSize:14,color:'var(--white)',
-              outline:'none',fontFamily:'var(--font)',
-            }}/>
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5">E-Mail</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && login()} placeholder="admin@example.com"
+              className="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#FFBF00] focus:ring-2 focus:ring-[#FFBF00]/20 transition-all" />
           </div>
-          <div style={{marginBottom:24}}>
-            <label style={{display:'block',fontSize:11,fontWeight:600,color:'rgba(255,255,255,0.4)',marginBottom:7,letterSpacing:'0.08em'}}>Passwort</label>
-            <input type="password" value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&login()} style={{
-              width:'100%',background:'rgba(255,255,255,0.06)',border:'1.5px solid rgba(255,255,255,0.1)',
-              borderRadius:'var(--radius)',padding:'11px 14px',fontSize:14,color:'var(--white)',
-              outline:'none',fontFamily:'var(--font)',
-            }}/>
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5">Passwort</label>
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && login()} placeholder="••••••••"
+              className="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#FFBF00] focus:ring-2 focus:ring-[#FFBF00]/20 transition-all" />
           </div>
-          <button onClick={login} disabled={loading||!email||!password} style={{
-            width:'100%',background:'var(--primary)',border:'none',color:'var(--navy)',
-            fontFamily:'var(--font)',fontWeight:700,fontSize:14,letterSpacing:'0.05em',
-            padding:'14px',borderRadius:'var(--radius-lg)',cursor:'pointer',
-            opacity: loading||!email||!password ? 0.6 : 1,
-            boxShadow:'0 4px 20px rgba(255,200,3,0.25)',transition:'var(--transition)',
-          }}>
+          {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm p-3 rounded-xl">{error}</div>}
+          <button onClick={login} disabled={loading}
+            className="w-full bg-[#FFBF00] hover:bg-[#FFD54F] disabled:bg-gray-200 disabled:text-gray-400 text-black font-bold py-3 rounded-xl transition-all text-sm">
             {loading ? 'Anmelden…' : 'Anmelden'}
           </button>
         </div>
       </div>
-    </div>
+    </main>
   )
 }

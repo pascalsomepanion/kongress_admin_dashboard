@@ -1,135 +1,111 @@
-'use client'
 import React from 'react'
 
-export function Btn({
-  onClick, children, variant = 'gold', disabled, size = 'md', type = 'button', className = ''
-}: {
-  onClick?: () => void
-  children: React.ReactNode
-  variant?: 'gold' | 'outline' | 'danger' | 'ghost'
-  disabled?: boolean
-  size?: 'sm' | 'md'
-  type?: 'button' | 'submit'
-  className?: string
-}) {
-  const base = 'inline-flex items-center justify-center rounded-xl font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed'
-  const sz = size === 'sm' ? 'px-3 py-1.5 text-xs' : 'px-4 py-2.5 text-sm'
-  const v = {
-    gold: 'bg-[#FFBF00] hover:bg-[#FFD54F] text-black shadow-sm',
-    outline: 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50',
-    danger: 'bg-red-50 border border-red-200 text-red-700 hover:bg-red-100',
-    ghost: 'text-gray-500 hover:text-gray-900 hover:bg-gray-100',
-  }[variant]
-  return (
-    <button type={type} onClick={onClick} disabled={disabled} className={`${base} ${sz} ${v} ${className}`}>
-      {children}
-    </button>
+export function Btn({onClick,children,variant='primary',size='md',disabled,className}:{onClick?:()=>void;children:React.ReactNode;variant?:'primary'|'outline'|'danger'|'ghost';size?:'sm'|'md';disabled?:boolean;className?:string}){
+  const base:React.CSSProperties={
+    display:'inline-flex',alignItems:'center',gap:6,
+    fontFamily:'var(--font)',fontWeight:600,cursor:disabled?'not-allowed':'pointer',
+    borderRadius:10,border:'none',transition:'var(--transition)',
+    opacity:disabled?0.5:1,letterSpacing:'0.02em',
+    padding: size==='sm' ? '6px 12px' : '10px 18px',
+    fontSize: size==='sm' ? 12 : 13,
+  }
+  const styles:Record<string,React.CSSProperties>={
+    primary:{...base,background:'var(--primary)',color:'var(--navy)',border:'none'},
+    outline:{...base,background:'transparent',color:'var(--navy)',border:'1.5px solid rgba(10,22,40,0.12)'},
+    danger:{...base,background:'rgba(239,68,68,0.08)',color:'#dc2626',border:'1px solid rgba(239,68,68,0.2)'},
+    ghost:{...base,background:'transparent',color:'var(--text-muted)',border:'none'},
+  }
+  return <button style={styles[variant]} onClick={onClick} disabled={disabled} className={className}>{children}</button>
+}
+
+export function Badge({label,variant='gray'}:{label:string;variant?:'green'|'yellow'|'red'|'blue'|'gray'}){
+  const colors:Record<string,React.CSSProperties>={
+    green:{background:'rgba(34,197,94,0.08)',color:'#16a34a',border:'1px solid rgba(34,197,94,0.2)'},
+    yellow:{background:'rgba(255,200,3,0.1)',color:'#92650a',border:'1px solid rgba(255,200,3,0.25)'},
+    red:{background:'rgba(239,68,68,0.08)',color:'#dc2626',border:'1px solid rgba(239,68,68,0.2)'},
+    blue:{background:'rgba(59,130,246,0.08)',color:'#1d4ed8',border:'1px solid rgba(59,130,246,0.2)'},
+    gray:{background:'rgba(10,22,40,0.05)',color:'var(--text-muted)',border:'1px solid rgba(10,22,40,0.08)'},
+  }
+  return <span style={{...colors[variant],fontSize:11,fontWeight:600,padding:'3px 9px',borderRadius:100,whiteSpace:'nowrap',letterSpacing:'0.04em'}}>{label}</span>
+}
+
+export function Loader(){
+  return(
+    <div style={{display:'flex',alignItems:'center',justifyContent:'center',padding:'48px 0'}}>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <div style={{width:28,height:28,border:'2.5px solid rgba(10,22,40,0.08)',borderTop:'2.5px solid var(--primary)',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>
+    </div>
   )
 }
 
-export function Badge({ label, variant }: { label: string; variant: 'green' | 'yellow' | 'red' | 'blue' | 'gray' }) {
-  const v = {
-    green: 'bg-green-100 text-green-800',
-    yellow: 'bg-yellow-100 text-yellow-800',
-    red: 'bg-red-100 text-red-800',
-    blue: 'bg-blue-100 text-blue-800',
-    gray: 'bg-gray-100 text-gray-600',
-  }[variant]
-  return <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${v}`}>{label}</span>
-}
-
-export function Loader() {
-  return <div className="text-center py-16 text-gray-400 text-sm">Wird geladen…</div>
-}
-
-export function Modal({ title, onClose, children, wide, scroll }: {
-  title: string; onClose: () => void; children: React.ReactNode; wide?: boolean; scroll?: boolean
-}) {
-  return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className={`bg-white rounded-2xl shadow-xl w-full flex flex-col ${wide ? 'max-w-4xl' : 'max-w-lg'} ${scroll ? 'max-h-[90vh]' : ''}`}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
-          <h2 className="font-bold text-base text-gray-900">{title}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl leading-none">×</button>
+export function Modal({title,onClose,children,wide,scroll}:{title:string;onClose:()=>void;children:React.ReactNode;wide?:boolean;scroll?:boolean}){
+  return(
+    <div style={{position:'fixed',inset:0,background:'rgba(10,22,40,0.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:50,padding:16,backdropFilter:'blur(4px)'}}>
+      <div style={{
+        background:'var(--white)',borderRadius:'var(--radius-xl)',boxShadow:'var(--shadow-lg)',
+        width:'100%',maxWidth: wide ? 900 : 520,
+        display:'flex',flexDirection:'column',
+        ...(scroll ? {maxHeight:'90vh'} : {}),
+      }}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'20px 24px',borderBottom:'1px solid var(--border-light)',flexShrink:0}}>
+          <h2 style={{fontSize:15,fontWeight:700,color:'var(--navy)'}}>{title}</h2>
+          <button onClick={onClose} style={{background:'none',border:'none',fontSize:20,color:'var(--text-muted)',cursor:'pointer',lineHeight:1,padding:'2px 6px',borderRadius:6}}>×</button>
         </div>
-        <div className={`px-6 py-5 ${scroll ? 'overflow-y-auto' : ''}`}>{children}</div>
+        <div style={{padding:'20px 24px',...(scroll?{overflowY:'auto'}:{})}}>{children}</div>
       </div>
     </div>
   )
 }
 
-export function Field({
-  label, id, value, onChange, type = 'text', error, placeholder, span2, readOnly
-}: {
-  label: string; id: string; value: string
-  onChange?: (v: string) => void
-  type?: string; error?: string; placeholder?: string; span2?: boolean; readOnly?: boolean
-}) {
-  return (
-    <div className={span2 ? 'col-span-2' : ''}>
-      <label htmlFor={id} className="block text-xs font-semibold text-gray-500 mb-1.5">{label}</label>
-      <input
-        id={id} type={type} value={value} readOnly={readOnly}
-        onChange={e => onChange?.(e.target.value)}
-        placeholder={placeholder}
-        className={`w-full bg-gray-50 border-2 rounded-xl px-3 py-2.5 text-sm text-gray-900
-          focus:outline-none focus:bg-white focus:border-[#FFBF00] focus:ring-2 focus:ring-[#FFBF00]/20
-          transition-all ${error ? 'border-red-400 bg-red-50' : 'border-gray-200'}
-          ${readOnly ? 'opacity-60 cursor-not-allowed' : ''}`}
+export function Field({label,id,value,onChange,span2,type='text'}:{label:string;id:string;value:string;onChange:(v:string)=>void;span2?:boolean;type?:string}){
+  return(
+    <div style={span2?{gridColumn:'span 2'}:{}}>
+      <label htmlFor={id} style={{display:'block',fontSize:11,fontWeight:600,color:'var(--text-muted)',marginBottom:6,letterSpacing:'0.04em'}}>{label}</label>
+      <input id={id} type={type} value={value} onChange={e=>onChange(e.target.value)} style={{
+        width:'100%',background:'rgba(10,22,40,0.02)',border:'1.5px solid rgba(10,22,40,0.1)',
+        borderRadius:'var(--radius)',padding:'9px 12px',fontSize:13,color:'var(--navy)',
+        outline:'none',fontFamily:'var(--font)',transition:'var(--transition)',
+      }}
+      onFocus={e=>{e.target.style.borderColor='var(--primary)';e.target.style.background='var(--white)'}}
+      onBlur={e=>{e.target.style.borderColor='rgba(10,22,40,0.1)';e.target.style.background='rgba(10,22,40,0.02)'}}
       />
-      {error && <p className="text-xs text-red-600 font-medium mt-1">{error}</p>}
     </div>
   )
 }
 
-export function PageHeader({
-  title, sub, children
-}: { title: string; sub?: string; children?: React.ReactNode }) {
-  return (
-    <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+export function PageHeader({title,sub,children}:{title:string;sub?:string;children?:React.ReactNode}){
+  return(
+    <div style={{
+      background:'var(--white)',borderBottom:'1px solid var(--border-light)',
+      padding:'20px 28px',display:'flex',alignItems:'center',justifyContent:'space-between',
+      gap:16,position:'sticky',top:0,zIndex:10,
+      boxShadow:'0 1px 0 rgba(10,22,40,0.04)',
+    }}>
       <div>
-        <h1 className="text-lg font-bold text-gray-900">{title}</h1>
-        {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+        <h1 style={{fontSize:16,fontWeight:700,color:'var(--navy)',letterSpacing:'-0.01em'}}>{title}</h1>
+        {sub&&<p style={{fontSize:12,color:'var(--text-muted)',marginTop:2}}>{sub}</p>}
       </div>
-      {children && <div className="flex items-center gap-3">{children}</div>}
+      {children&&<div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',justifyContent:'flex-end'}}>{children}</div>}
     </div>
   )
 }
 
-export function Card({ title, children, highlight }: {
-  title: string; children: React.ReactNode; highlight?: boolean
-}) {
-  return (
-    <div className={`rounded-2xl border p-6 ${highlight ? 'border-[#FFE082] bg-[#FFF9E6]' : 'border-gray-200 bg-white'}`}>
-      <div className="flex items-center gap-2 mb-5">
-        <div className="w-1 h-4 bg-[#FFBF00] rounded-full flex-shrink-0" />
-        <h2 className="text-[10px] font-bold tracking-widest uppercase text-gray-400">{title}</h2>
-      </div>
-      {children}
-    </div>
-  )
-}
-
-export function Table({ headers, children, empty }: {
-  headers: string[]; children: React.ReactNode; empty?: boolean
-}) {
-  return (
-    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              {headers.map(h => (
-                <th key={h} className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 whitespace-nowrap">
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">{children}</tbody>
-        </table>
-        {empty && <div className="text-center py-12 text-gray-400 text-sm">Keine Einträge gefunden.</div>}
-      </div>
+export function Table({headers,children,empty}:{headers:string[];children?:React.ReactNode;empty?:boolean}){
+  return(
+    <div style={{overflowX:'auto'}}>
+      <table style={{width:'100%',borderCollapse:'collapse'}}>
+        <thead>
+          <tr style={{borderBottom:'1px solid var(--border-light)',background:'rgba(10,22,40,0.02)'}}>
+            {headers.map(h=><th key={h} style={{padding:'10px 16px',textAlign:'left',fontSize:10,fontWeight:700,letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--text-muted)'}}>{h}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {empty
+            ?<tr><td colSpan={headers.length} style={{padding:'48px 16px',textAlign:'center',color:'var(--text-muted)',fontSize:13}}>Keine Einträge vorhanden</td></tr>
+            :children
+          }
+        </tbody>
+      </table>
     </div>
   )
 }

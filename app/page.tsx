@@ -417,22 +417,22 @@ export default function AnmeldungPage(){
 
         {/* ── STEP 2 ── */}
         {step==='confirm'&&<>
-          <div style={{background:'rgba(255,255,255,0.82)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.5)',boxShadow:'0 8px 40px rgba(10,22,40,0.15)',overflow:'hidden'}}>
+          <div style={{background:'rgba(20,35,58,0.72)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,200,3,0.15)',boxShadow:'0 8px 40px rgba(10,22,40,0.25)',overflow:'hidden'}>
             <div style={{background:'rgba(0,0,0,0.2)',borderBottom:'1px solid rgba(255,200,3,0.1)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
               <div style={{width:3,height:14,background:'#ffc803',borderRadius:2}}/>
               <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'rgba(255,255,255,0.5)'}}>Persönliche Daten</span>
             </div>
             <div style={{padding:'4px 24px 16px'}}>
               {[['Vorname',form.vorname],['Nachname',form.nachname],['Straße',`${form.strasse} ${form.hausnummer}`],['PLZ / Stadt',`${form.postleitzahl} ${form.stadt}`],['Land',form.land],['ÖÄK-Nr.',form.oeak_nr],['E-Mail',form.email],...(form.ist_oegsmp_mitglied?[['ÖGSMP-Mitglied','Ja']]:[])].map(([l,v])=>(
-                <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'10px 0',borderBottom:'1px solid rgba(10,22,40,0.06)',gap:16}}>
-                  <span style={{fontSize:13,color:'#6b7280',flexShrink:0}}>{l}</span>
-                  <span style={{fontSize:13,fontWeight:600,color:'#111827',textAlign:'right' as const}}>{v}</span>
+                <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'10px 0',borderBottom:'1px solid rgba(255,255,255,0.06)',gap:16}}>
+                  <span style={{fontSize:13,color:'rgba(255,255,255,0.45)',flexShrink:0}}>{l}</span>
+                  <span style={{fontSize:13,fontWeight:600,color:'rgba(255,255,255,0.9)',textAlign:'right' as const}}>{v}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div style={{background:'rgba(255,255,255,0.82)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.5)',boxShadow:'0 8px 40px rgba(10,22,40,0.15)',overflow:'hidden'}}>
+          <div style={{background:'rgba(20,35,58,0.72)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,200,3,0.15)',boxShadow:'0 8px 40px rgba(10,22,40,0.25)',overflow:'hidden'}>
             <div style={{background:'rgba(0,0,0,0.2)',borderBottom:'1px solid rgba(255,200,3,0.1)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
               <div style={{width:3,height:14,background:'#ffc803',borderRadius:2}}/>
               <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'rgba(255,255,255,0.5)'}}>Gebuchte Kurse</span>
@@ -451,7 +451,7 @@ export default function AnmeldungPage(){
                 )
               })}
               <div style={{display:'flex',justifyContent:'space-between',padding:'14px 0 0',fontWeight:800,fontSize:15}}>
-                <span>Gesamtbetrag</span>
+                <span style={{color:'rgba(255,255,255,0.7)'}}>Gesamtbetrag</span>
                 <span style={{color:'#c99a00'}}>€ {gesamtbetrag.toFixed(2)}</span>
               </div>
             </div>
@@ -488,10 +488,10 @@ export default function AnmeldungPage(){
 
         {/* ── STEP 3 ── */}
         {step==='done'&&(
-          <div style={{background:'rgba(255,255,255,0.92)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.6)',boxShadow:'0 8px 40px rgba(10,22,40,0.18)',padding:'48px 32px',textAlign:'center' as const}}>
+          <div style={{background:'rgba(20,35,58,0.72)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,200,3,0.15)',boxShadow:'0 8px 40px rgba(10,22,40,0.25)',padding:'48px 32px',textAlign:'center' as const}}>
             <div style={{width:64,height:64,background:'rgba(34,197,94,0.1)',border:'2px solid rgba(34,197,94,0.25)',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 24px',fontSize:26,color:'#16a34a'}}>✓</div>
-            <h2 style={{fontSize:22,fontWeight:800,color:'#111827',marginBottom:10}}>Anmeldung eingegangen!</h2>
-            <p style={{fontSize:14,color:'#6b7280',marginBottom:28,lineHeight:1.7}}>Danke, {form.vorname}! Eine Bestätigung wurde an <strong style={{color:'rgba(255,255,255,0.9)'}}>{form.email}</strong> gesendet.</p>
+            <h2 style={{fontSize:22,fontWeight:800,color:'rgba(255,255,255,0.95)',marginBottom:10}}>Anmeldung eingegangen!</h2>
+            <p style={{fontSize:14,color:'rgba(255,255,255,0.55)',marginBottom:28,lineHeight:1.7}}>Danke, {form.vorname}! Eine Bestätigung wurde an <strong style={{color:'rgba(255,255,255,0.9)'}}>{form.email}</strong> gesendet.</p>
             <div style={{...glassDark,padding:'20px 24px',textAlign:'left' as const,marginBottom:20}}>
               {[['Betrag',`€ ${gesamtbetrag.toFixed(2)}`,true],['IBAN',kongress.iban,false],['BIC',kongress.bic,false],['Verwendungszweck',fullName,true]].map(([l,v,hi])=>(
                 <div key={l as string} style={{display:'flex',gap:16,padding:'5px 0'}}>

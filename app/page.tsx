@@ -279,38 +279,38 @@ export default function AnmeldungPage(){
           </div>
 
           {/* PREISTABELLE */}
-          <div style={{background:'rgba(255,255,255,0.82)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.5)',boxShadow:'0 8px 40px rgba(10,22,40,0.15)',overflow:'hidden'}}>
-            <div style={{background:'rgba(10,22,40,0.06)',borderBottom:'1px solid rgba(10,22,40,0.06)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
+          <div style={{background:'rgba(20,35,58,0.72)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,200,3,0.15)',boxShadow:'0 8px 40px rgba(10,22,40,0.25)',overflow:'hidden'}}>
+            <div style={{background:'rgba(0,0,0,0.2)',borderBottom:'1px solid rgba(255,200,3,0.1)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
               <div style={{width:3,height:14,background:'#ffc803',borderRadius:2}}/>
-              <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'#6b7280'}}>Preisübersicht</span>
+              <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'rgba(255,255,255,0.5)'}}>Preisübersicht</span>
             </div>
             <div style={{padding:'4px 24px 20px'}}>
               <table style={{width:'100%',borderCollapse:'collapse' as const,fontSize:12}}>
                 <thead>
                   <tr>{['Kurs','Datum & Zeit','Frühbucher','Normal'].map((h,i)=>(
-                    <th key={h} style={{padding:'12px 0 8px',textAlign:i>1?'right' as const:'left' as const,fontSize:9,fontWeight:700,letterSpacing:'0.15em',textTransform:'uppercase' as const,color:'#9ca3af',borderBottom:'1px solid rgba(10,22,40,0.06)'}}>{h}</th>
+                    <th key={h} style={{padding:'12px 0 8px',textAlign:i>1?'right' as const:'left' as const,fontSize:9,fontWeight:700,letterSpacing:'0.15em',textTransform:'uppercase' as const,color:'rgba(255,255,255,0.4)',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>{h}</th>
                   ))}</tr>
                 </thead>
                 <tbody>
                   <tr><td colSpan={4} style={{padding:'12px 0 4px',fontSize:9,fontWeight:700,letterSpacing:'0.15em',textTransform:'uppercase' as const,color:'#c99a00'}}>Blockkurse</td></tr>
                   {blockKurse.map(k=>(
-                    <tr key={k.id} style={{borderBottom:'1px solid rgba(10,22,40,0.04)'}}>
-                      <td style={{padding:'9px 0',fontWeight:600,color:'#111827'}}>
+                    <tr key={k.id} style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                      <td style={{padding:'9px 0',fontWeight:600,color:'rgba(255,255,255,0.9)'}}>
                         {k.titel}
                         {k.mitglied_fruehbucher_preis&&k.titel.toLowerCase().includes('suckert')&&
                           <span style={{marginLeft:8,fontSize:9,color:'#2563eb',fontWeight:700,background:'rgba(37,99,235,0.08)',padding:'2px 6px',borderRadius:4}}>ÖGSMP −€20</span>}
                       </td>
                       <td style={{padding:'9px 0',color:'#9ca3af',fontSize:11}}>{k.uhrzeit??k.wochentag_datum}</td>
-                      <td style={{padding:'9px 0',textAlign:'right' as const,fontWeight:700,color:'#111827'}}>€ {k.fruehbucher_preis}</td>
+                      <td style={{padding:'9px 0',textAlign:'right' as const,fontWeight:700,color:'rgba(255,255,255,0.9)'}}>€ {k.fruehbucher_preis}</td>
                       <td style={{padding:'9px 0',textAlign:'right' as const,fontWeight:700,color:'#c99a00'}}>€ {k.spaetbucher_preis}</td>
                     </tr>
                   ))}
                   <tr><td colSpan={4} style={{padding:'12px 0 4px',fontSize:9,fontWeight:700,letterSpacing:'0.15em',textTransform:'uppercase' as const,color:'#c99a00'}}>Praxis- & Theorieseminare</td></tr>
                   {psKurse.map((k,i)=>{const ts=tsKurse[i];return(
-                    <tr key={k.id} style={{borderBottom:'1px solid rgba(10,22,40,0.04)'}}>
-                      <td style={{padding:'9px 0',color:'#374151'}}>{k.titel} / {ts?.titel}</td>
+                    <tr key={k.id} style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                      <td style={{padding:'9px 0',color:'rgba(255,255,255,0.8)'}}>{k.titel} / {ts?.titel}</td>
                       <td style={{padding:'9px 0',color:'#9ca3af',fontSize:11}}>{k.uhrzeit??k.wochentag_datum}</td>
-                      <td style={{padding:'9px 0',textAlign:'right' as const,fontWeight:700,color:'#111827'}}>€ {k.fruehbucher_preis}</td>
+                      <td style={{padding:'9px 0',textAlign:'right' as const,fontWeight:700,color:'rgba(255,255,255,0.9)'}}>€ {k.fruehbucher_preis}</td>
                       <td style={{padding:'9px 0',textAlign:'right' as const,fontWeight:700,color:'#c99a00'}}>€ {k.spaetbucher_preis}</td>
                     </tr>
                   )})}
@@ -334,10 +334,10 @@ export default function AnmeldungPage(){
           </div>
 
           {/* PERSÖNLICHE DATEN */}
-          <div style={{background:'rgba(255,255,255,0.82)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.5)',boxShadow:'0 8px 40px rgba(10,22,40,0.15)',overflow:'hidden'}}>
-            <div style={{background:'rgba(10,22,40,0.06)',borderBottom:'1px solid rgba(10,22,40,0.06)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
+          <div style={{background:'rgba(20,35,58,0.72)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,200,3,0.15)',boxShadow:'0 8px 40px rgba(10,22,40,0.25)',overflow:'hidden'}}>
+            <div style={{background:'rgba(0,0,0,0.2)',borderBottom:'1px solid rgba(255,200,3,0.1)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
               <div style={{width:3,height:14,background:'#ffc803',borderRadius:2}}/>
-              <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'#6b7280'}}>Persönliche Daten</span>
+              <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'rgba(255,255,255,0.5)'}}>Persönliche Daten</span>
             </div>
             <div style={{padding:24,display:'flex',flexDirection:'column' as const,gap:12}}>
               <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
@@ -356,10 +356,10 @@ export default function AnmeldungPage(){
               <FI label="ÖÄK-Nr. * (internationale Gäste: 0)" id="f-ok" value={form.oeak_nr} onChange={v=>setF('oeak_nr',v)} error={errors.oeak_nr}/>
               <div id="f-email"><FI label="E-Mail *" id="f-em" type="email" value={form.email} onChange={v=>{setF('email',v);setDuplikat(false)}} error={errors.email}/></div>
               {duplikat&&<div style={{background:'rgba(37,99,235,0.06)',border:'1px solid rgba(37,99,235,0.18)',borderRadius:10,padding:'12px 14px',fontSize:13,color:'#1d4ed8',lineHeight:1.6}}>Diese E-Mail ist bereits registriert. Bei Änderungswünschen: <a href={`mailto:${kongress.kontakt_email}`} style={{fontWeight:700,textDecoration:'underline'}}>{kongress.kontakt_email}</a></div>}
-              <label style={{display:'flex',alignItems:'center',gap:12,padding:'12px 14px',borderRadius:10,border:`1.5px solid ${form.ist_oegsmp_mitglied?'rgba(255,200,3,0.5)':'rgba(10,22,40,0.1)'}`,background:form.ist_oegsmp_mitglied?'rgba(255,200,3,0.06)':'rgba(10,22,40,0.02)',cursor:'pointer',transition:'all 0.2s'}}>
+              <label style={{display:'flex',alignItems:'center',gap:12,padding:'12px 14px',borderRadius:10,border:`1.5px solid ${form.ist_oegsmp_mitglied?'rgba(255,200,3,0.5)':'rgba(255,255,255,0.1)'}`,background:form.ist_oegsmp_mitglied?'rgba(255,200,3,0.08)':'rgba(255,255,255,0.04)',cursor:'pointer',transition:'all 0.2s'}}>
                 <input type="checkbox" checked={form.ist_oegsmp_mitglied} onChange={e=>setF('ist_oegsmp_mitglied',e.target.checked)} style={{width:16,height:16,accentColor:'#ffc803',flexShrink:0}}/>
                 <div>
-                  <p style={{fontSize:13,fontWeight:600,color:'#111827'}}>Aktives ÖGSMP-Mitglied</p>
+                  <p style={{fontSize:13,fontWeight:600,color:'rgba(255,255,255,0.9)'}}>Aktives ÖGSMP-Mitglied</p>
                   <p style={{fontSize:11,color:'#6b7280',marginTop:2}}>Rabatt beim Reinhard Suckert Symposium (−€ 20)</p>
                 </div>
               </label>
@@ -367,18 +367,18 @@ export default function AnmeldungPage(){
           </div>
 
           {/* KURSAUSWAHL */}
-          <div style={{background:'rgba(255,255,255,0.82)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.5)',boxShadow:'0 8px 40px rgba(10,22,40,0.15)',overflow:'hidden'}}>
-            <div style={{background:'rgba(10,22,40,0.06)',borderBottom:'1px solid rgba(10,22,40,0.06)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
+          <div style={{background:'rgba(20,35,58,0.72)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,200,3,0.15)',boxShadow:'0 8px 40px rgba(10,22,40,0.25)',overflow:'hidden'}}>
+            <div style={{background:'rgba(0,0,0,0.2)',borderBottom:'1px solid rgba(255,200,3,0.1)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
               <div style={{width:3,height:14,background:'#ffc803',borderRadius:2}}/>
-              <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'#6b7280'}}>Kursauswahl</span>
+              <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'rgba(255,255,255,0.5)'}}>Kursauswahl</span>
             </div>
             <div style={{padding:24}}>
               {konflikt&&<div style={{background:'rgba(239,68,68,0.06)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:10,padding:'10px 14px',fontSize:13,color:'#dc2626',marginBottom:14}}>⚠ {konflikt}</div>}
               {errors.kurse&&<div style={{background:'rgba(239,68,68,0.06)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:10,padding:'10px 14px',fontSize:13,color:'#dc2626',marginBottom:14}}>⚠ {errors.kurse}</div>}
-              <p style={{fontSize:9,fontWeight:700,letterSpacing:'0.15em',textTransform:'uppercase' as const,color:'#9ca3af',marginBottom:12}}>Blockkurse</p>
+              <p style={{fontSize:9,fontWeight:700,letterSpacing:'0.15em',textTransform:'uppercase' as const,color:'rgba(255,255,255,0.4)',marginBottom:12}}>Blockkurse</p>
               {blockKurse.map(k=><KursRow key={k.id} kurs={k} selected={selected.has(k.id)} preis={getPreis(k,form.ist_oegsmp_mitglied,frueh)} onToggle={()=>toggleKurs(k)}/>)}
-              <div style={{borderTop:'1px solid rgba(10,22,40,0.06)',margin:'16px 0'}}/>
-              <p style={{fontSize:9,fontWeight:700,letterSpacing:'0.15em',textTransform:'uppercase' as const,color:'#9ca3af',marginBottom:4}}>Praxis- & Theorieseminare</p>
+              <div style={{borderTop:'1px solid rgba(255,255,255,0.08)',margin:'16px 0'}}/>
+              <p style={{fontSize:9,fontWeight:700,letterSpacing:'0.15em',textTransform:'uppercase' as const,color:'rgba(255,255,255,0.4)',marginBottom:4}}>Praxis- & Theorieseminare</p>
               <p style={{fontSize:12,color:'#9ca3af',marginBottom:14}}>PS und TS laufen parallel — tageweiser Wechsel möglich</p>
               <div className="psgrid" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
                 <div>
@@ -418,9 +418,9 @@ export default function AnmeldungPage(){
         {/* ── STEP 2 ── */}
         {step==='confirm'&&<>
           <div style={{background:'rgba(255,255,255,0.82)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.5)',boxShadow:'0 8px 40px rgba(10,22,40,0.15)',overflow:'hidden'}}>
-            <div style={{background:'rgba(10,22,40,0.06)',borderBottom:'1px solid rgba(10,22,40,0.06)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
+            <div style={{background:'rgba(0,0,0,0.2)',borderBottom:'1px solid rgba(255,200,3,0.1)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
               <div style={{width:3,height:14,background:'#ffc803',borderRadius:2}}/>
-              <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'#6b7280'}}>Persönliche Daten</span>
+              <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'rgba(255,255,255,0.5)'}}>Persönliche Daten</span>
             </div>
             <div style={{padding:'4px 24px 16px'}}>
               {[['Vorname',form.vorname],['Nachname',form.nachname],['Straße',`${form.strasse} ${form.hausnummer}`],['PLZ / Stadt',`${form.postleitzahl} ${form.stadt}`],['Land',form.land],['ÖÄK-Nr.',form.oeak_nr],['E-Mail',form.email],...(form.ist_oegsmp_mitglied?[['ÖGSMP-Mitglied','Ja']]:[])].map(([l,v])=>(
@@ -433,17 +433,17 @@ export default function AnmeldungPage(){
           </div>
 
           <div style={{background:'rgba(255,255,255,0.82)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.5)',boxShadow:'0 8px 40px rgba(10,22,40,0.15)',overflow:'hidden'}}>
-            <div style={{background:'rgba(10,22,40,0.06)',borderBottom:'1px solid rgba(10,22,40,0.06)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
+            <div style={{background:'rgba(0,0,0,0.2)',borderBottom:'1px solid rgba(255,200,3,0.1)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
               <div style={{width:3,height:14,background:'#ffc803',borderRadius:2}}/>
-              <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'#6b7280'}}>Gebuchte Kurse</span>
+              <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'rgba(255,255,255,0.5)'}}>Gebuchte Kurse</span>
             </div>
             <div style={{padding:'4px 24px 16px'}}>
               {Array.from(selected).map(id=>{
                 const k=kurse.find(k=>k.id===id)!;const p=getPreis(k,form.ist_oegsmp_mitglied,frueh)
                 return(
-                  <div key={id} style={{padding:'11px 0',borderBottom:'1px solid rgba(10,22,40,0.06)'}}>
+                  <div key={id} style={{padding:'11px 0',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
                     <div style={{display:'flex',justifyContent:'space-between'}}>
-                      <span style={{fontSize:13,fontWeight:600,color:'#111827'}}>{k.titel}</span>
+                      <span style={{fontSize:13,fontWeight:600,color:'rgba(255,255,255,0.9)'}}>{k.titel}</span>
                       <span style={{fontSize:13,fontWeight:700,flexShrink:0,marginLeft:16}}>€ {p.toFixed(2)}</span>
                     </div>
                     {k.uhrzeit&&<p style={{fontSize:11,color:'#9ca3af',marginTop:3}}>{k.uhrzeit}</p>}
@@ -491,7 +491,7 @@ export default function AnmeldungPage(){
           <div style={{background:'rgba(255,255,255,0.92)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.6)',boxShadow:'0 8px 40px rgba(10,22,40,0.18)',padding:'48px 32px',textAlign:'center' as const}}>
             <div style={{width:64,height:64,background:'rgba(34,197,94,0.1)',border:'2px solid rgba(34,197,94,0.25)',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 24px',fontSize:26,color:'#16a34a'}}>✓</div>
             <h2 style={{fontSize:22,fontWeight:800,color:'#111827',marginBottom:10}}>Anmeldung eingegangen!</h2>
-            <p style={{fontSize:14,color:'#6b7280',marginBottom:28,lineHeight:1.7}}>Danke, {form.vorname}! Eine Bestätigung wurde an <strong style={{color:'#111827'}}>{form.email}</strong> gesendet.</p>
+            <p style={{fontSize:14,color:'#6b7280',marginBottom:28,lineHeight:1.7}}>Danke, {form.vorname}! Eine Bestätigung wurde an <strong style={{color:'rgba(255,255,255,0.9)'}}>{form.email}</strong> gesendet.</p>
             <div style={{...glassDark,padding:'20px 24px',textAlign:'left' as const,marginBottom:20}}>
               {[['Betrag',`€ ${gesamtbetrag.toFixed(2)}`,true],['IBAN',kongress.iban,false],['BIC',kongress.bic,false],['Verwendungszweck',fullName,true]].map(([l,v,hi])=>(
                 <div key={l as string} style={{display:'flex',gap:16,padding:'5px 0'}}>
@@ -500,7 +500,7 @@ export default function AnmeldungPage(){
                 </div>
               ))}
             </div>
-            <p style={{fontSize:12,color:'#9ca3af'}}>Fragen? <a href={`mailto:${kongress.kontakt_email}`} style={{color:'#c99a00',fontWeight:600}}>{kongress.kontakt_email}</a></p>
+            <p style={{fontSize:12,color:'rgba(255,255,255,0.4)'}}>Fragen? <a href={`mailto:${kongress.kontakt_email}`} style={{color:'#c99a00',fontWeight:600}}>{kongress.kontakt_email}</a></p>
           </div>
         )}
 
@@ -515,9 +515,9 @@ export default function AnmeldungPage(){
 function FI({label,id,value,onChange,type='text',error}:{label:string;id:string;value:string;onChange:(v:string)=>void;type?:string;error?:string}){
   return(
     <div>
-      <label htmlFor={id} style={{display:'block',fontSize:11,fontWeight:600,color:'#4b5563',marginBottom:6,letterSpacing:'0.04em'}}>{label}</label>
+      <label htmlFor={id} style={{display:'block',fontSize:11,fontWeight:600,color:'rgba(255,255,255,0.5)',marginBottom:6,letterSpacing:'0.04em'}}>{label}</label>
       <input id={id} type={type} value={value} onChange={e=>onChange(e.target.value)} autoComplete="off" className="fi"
-        style={{width:'100%',background:'rgba(10,22,40,0.04)',border:'1.5px solid rgba(10,22,40,0.1)',borderRadius:10,padding:'10px 13px',fontSize:14,color:'#111827',outline:'none',fontFamily:'Plus Jakarta Sans, sans-serif',transition:'all 0.2s'}}
+        style={{width:'100%',background:'rgba(255,255,255,0.08)',border:'1.5px solid rgba(255,255,255,0.15)',borderRadius:10,padding:'10px 13px',fontSize:14,color:'rgba(255,255,255,0.9)',outline:'none',fontFamily:'Plus Jakarta Sans, sans-serif',transition:'all 0.2s'}}
       />
       {error&&<p style={{fontSize:11,color:'#dc2626',marginTop:4,fontWeight:500}}>{error}</p>}
     </div>
@@ -528,14 +528,14 @@ function KursRow({kurs,selected,preis,onToggle,compact}:{kurs:Kurs;selected:bool
   return(
     <label className={`krow${selected?' sel':''}`} style={{
       display:'flex',alignItems:'center',gap:12,cursor:'pointer',
-      borderRadius:10,border:`1.5px solid ${selected?'rgba(255,200,3,0.5)':'rgba(10,22,40,0.08)'}`,
+      borderRadius:10,border:`1.5px solid ${selected?'rgba(255,200,3,0.5)':'rgba(255,255,255,0.08)'}`,
       padding:compact?'9px 11px':'12px 13px',marginBottom:7,
-      background:selected?'rgba(255,200,3,0.04)':'rgba(10,22,40,0.02)',
+      background:selected?'rgba(255,200,3,0.08)':'rgba(255,255,255,0.04)',
       transition:'all 0.2s',
     }}>
       <input type="checkbox" checked={selected} onChange={onToggle} style={{width:15,height:15,accentColor:'#ffc803',flexShrink:0}}/>
       <div style={{flex:1,minWidth:0}}>
-        <p style={{fontSize:compact?12:13,fontWeight:600,color:'#111827'}}>{kurs.titel}</p>
+        <p style={{fontSize:compact?12:13,fontWeight:600,color:'rgba(255,255,255,0.88)'}}>{kurs.titel}</p>
         <p style={{fontSize:10,color:'#9ca3af',marginTop:2}}>{kurs.uhrzeit??kurs.wochentag_datum}</p>
       </div>
       <span style={{fontSize:compact?12:13,fontWeight:700,color:'#111827',flexShrink:0}}>€ {preis}</span>

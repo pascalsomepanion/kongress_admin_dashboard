@@ -266,18 +266,20 @@ export default function AnmeldungPage(){
         {step==='form'&&<>
           {/* INFO */}
           <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
-            <div style={{...glass,padding:18,background:'rgba(255,200,3,0.08)',border:'1px solid rgba(255,200,3,0.2)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)'}}>
-              <p style={{fontSize:9,fontWeight:700,letterSpacing:'0.2em',textTransform:'uppercase' as const,color:'#ffc803',marginBottom:8}}>⭐ Frühbucherbonus</p>
-              <p style={{fontSize:12,color:'rgba(255,255,255,0.75)',lineHeight:1.6}}>Zahlungseingang bis {fruehText}. Ab dem Folgetag gilt der Normaltarif.</p>
-            </div>
-            <div style={{...glass,padding:18,background:'rgba(255,255,255,0.08)',border:'1px solid rgba(255,255,255,0.12)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)'}}>
-              <p style={{fontSize:9,fontWeight:700,letterSpacing:'0.2em',textTransform:'uppercase' as const,color:'rgba(255,255,255,0.45)',marginBottom:8}}>ℹ Stornogebühren</p>
-              <p style={{fontSize:12,color:'rgba(255,255,255,0.65)',lineHeight:1.6}}>Bis {stornoFreeText}: kostenlos · Bis {storno50Text}: 50% · Danach: keine Erstattung</p>
-            </div>
+            {[
+              {icon:'⭐',label:'Frühbucherbonus',text:`Zahlungseingang bis ${fruehText}. Ab dem Folgetag gilt der Normaltarif.`},
+              {icon:'📋',label:'Stornogebühren',text:`Bis ${stornoFreeText}: kostenlos · Bis ${storno50Text}: 50% · Danach: keine Erstattung`},
+            ].map(c=>(
+              <div key={c.label} style={{background:'rgba(255,200,3,0.1)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',border:'1px solid rgba(255,200,3,0.25)',borderRadius:20,padding:'20px 20px',boxShadow:'0 4px 24px rgba(10,22,40,0.12)'}}>
+                <div style={{fontSize:28,marginBottom:10}}>{c.icon}</div>
+                <p style={{fontSize:12,fontWeight:800,letterSpacing:'0.12em',textTransform:'uppercase' as const,color:'#ffc803',marginBottom:8}}>{c.label}</p>
+                <p style={{fontSize:12,color:'rgba(255,255,255,0.8)',lineHeight:1.7}}>{c.text}</p>
+              </div>
+            ))}
           </div>
 
           {/* PREISTABELLE */}
-          <div style={glass}>
+          <div style={{background:'rgba(255,255,255,0.88)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.5)',boxShadow:'0 8px 40px rgba(10,22,40,0.15)',overflow:'hidden'}}>
             <div style={{background:'rgba(10,22,40,0.06)',borderBottom:'1px solid rgba(10,22,40,0.06)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
               <div style={{width:3,height:14,background:'#ffc803',borderRadius:2}}/>
               <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'#6b7280'}}>Preisübersicht</span>
@@ -318,17 +320,21 @@ export default function AnmeldungPage(){
           </div>
 
           {/* HINWEISE */}
-          <div style={{...glass,padding:'16px 20px',background:'rgba(255,255,255,0.75)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)'}}>
-            <p style={{fontSize:9,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'#9ca3af',marginBottom:10}}>Wichtige Hinweise</p>
+          <div style={{background:'rgba(255,200,3,0.08)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',border:'1px solid rgba(255,200,3,0.2)',borderRadius:20,padding:'22px 24px',boxShadow:'0 4px 24px rgba(10,22,40,0.12)'}}>
+            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16}}>
+              <span style={{fontSize:24}}>⚠️</span>
+              <p style={{fontSize:13,fontWeight:800,letterSpacing:'0.12em',textTransform:'uppercase' as const,color:'#ffc803'}}>Wichtige Hinweise</p>
+            </div>
             {['GK LIP und Work-Shop finden gleichzeitig statt — nur eines buchbar','PS und TS laufen parallel — tageweiser Wechsel möglich (PS1=PS2 usw.)','Ski Alpin & Ärztesport über Ski Austria Akademie — im Zimmerpreis inkl.','Steuerliche Absetzbarkeit bei mind. 8 Std. Nachweis'].map((h,i)=>(
-              <p key={i} style={{fontSize:12,color:'#4b5563',padding:'3px 0 3px 14px',position:'relative' as const,lineHeight:1.5}}>
-                <span style={{position:'absolute' as const,left:0,color:'#ffc803',fontWeight:700}}>→</span>{h}
-              </p>
+              <div key={i} style={{display:'flex',gap:10,padding:'6px 0',alignItems:'flex-start'}}>
+                <span style={{color:'#ffc803',fontWeight:700,fontSize:14,flexShrink:0,marginTop:1}}>→</span>
+                <p style={{fontSize:13,color:'rgba(255,255,255,0.85)',lineHeight:1.6}}>{h}</p>
+              </div>
             ))}
           </div>
 
           {/* PERSÖNLICHE DATEN */}
-          <div style={glass}>
+          <div style={{background:'rgba(255,255,255,0.88)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.5)',boxShadow:'0 8px 40px rgba(10,22,40,0.15)',overflow:'hidden'}}>
             <div style={{background:'rgba(10,22,40,0.06)',borderBottom:'1px solid rgba(10,22,40,0.06)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
               <div style={{width:3,height:14,background:'#ffc803',borderRadius:2}}/>
               <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'#6b7280'}}>Persönliche Daten</span>
@@ -361,7 +367,7 @@ export default function AnmeldungPage(){
           </div>
 
           {/* KURSAUSWAHL */}
-          <div style={glass}>
+          <div style={{background:'rgba(255,255,255,0.88)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.5)',boxShadow:'0 8px 40px rgba(10,22,40,0.15)',overflow:'hidden'}}>
             <div style={{background:'rgba(10,22,40,0.06)',borderBottom:'1px solid rgba(10,22,40,0.06)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
               <div style={{width:3,height:14,background:'#ffc803',borderRadius:2}}/>
               <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'#6b7280'}}>Kursauswahl</span>
@@ -411,7 +417,7 @@ export default function AnmeldungPage(){
 
         {/* ── STEP 2 ── */}
         {step==='confirm'&&<>
-          <div style={glass}>
+          <div style={{background:'rgba(255,255,255,0.88)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.5)',boxShadow:'0 8px 40px rgba(10,22,40,0.15)',overflow:'hidden'}}>
             <div style={{background:'rgba(10,22,40,0.06)',borderBottom:'1px solid rgba(10,22,40,0.06)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
               <div style={{width:3,height:14,background:'#ffc803',borderRadius:2}}/>
               <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'#6b7280'}}>Persönliche Daten</span>
@@ -426,7 +432,7 @@ export default function AnmeldungPage(){
             </div>
           </div>
 
-          <div style={glass}>
+          <div style={{background:'rgba(255,255,255,0.88)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.5)',boxShadow:'0 8px 40px rgba(10,22,40,0.15)',overflow:'hidden'}}>
             <div style={{background:'rgba(10,22,40,0.06)',borderBottom:'1px solid rgba(10,22,40,0.06)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
               <div style={{width:3,height:14,background:'#ffc803',borderRadius:2}}/>
               <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'#6b7280'}}>Gebuchte Kurse</span>
@@ -482,7 +488,7 @@ export default function AnmeldungPage(){
 
         {/* ── STEP 3 ── */}
         {step==='done'&&(
-          <div style={{...glass,padding:'48px 32px',textAlign:'center' as const}}>
+          <div style={{background:'rgba(255,255,255,0.92)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,255,255,0.6)',boxShadow:'0 8px 40px rgba(10,22,40,0.18)',padding:'48px 32px',textAlign:'center' as const}}>
             <div style={{width:64,height:64,background:'rgba(34,197,94,0.1)',border:'2px solid rgba(34,197,94,0.25)',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 24px',fontSize:26,color:'#16a34a'}}>✓</div>
             <h2 style={{fontSize:22,fontWeight:800,color:'#111827',marginBottom:10}}>Anmeldung eingegangen!</h2>
             <p style={{fontSize:14,color:'#6b7280',marginBottom:28,lineHeight:1.7}}>Danke, {form.vorname}! Eine Bestätigung wurde an <strong style={{color:'#111827'}}>{form.email}</strong> gesendet.</p>

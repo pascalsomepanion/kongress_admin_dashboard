@@ -202,7 +202,7 @@ export default function AnmeldungPage(){
       {/* STICKY HEADER */}
       <div style={{
         position:'sticky',top:0,zIndex:100,
-        background:'rgba(10,22,40,0.65)',
+        background:'rgba(10,22,40,0.45)',
         backdropFilter:'blur(24px)',
         WebkitBackdropFilter:'blur(24px)',
         borderBottom:'1px solid rgba(255,200,3,0.12)',
@@ -296,9 +296,9 @@ export default function AnmeldungPage(){
                   {blockKurse.map(k=>(
                     <tr key={k.id} style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
                       <td style={{padding:'9px 0',fontWeight:600,color:'rgba(255,255,255,0.9)'}}>
-                        {k.titel}
+                        <div>{k.titel}</div>
                         {k.mitglied_fruehbucher_preis&&k.titel.toLowerCase().includes('suckert')&&
-                          <span style={{marginLeft:8,fontSize:9,color:'#2563eb',fontWeight:700,background:'rgba(37,99,235,0.08)',padding:'2px 6px',borderRadius:4}}>ÖGSMP −€20</span>}
+                          <div style={{marginTop:3}}><span style={{fontSize:9,color:'#60a5fa',fontWeight:700,background:'rgba(96,165,250,0.15)',padding:'2px 8px',borderRadius:4,border:'1px solid rgba(96,165,250,0.2)'}}>ÖGSMP −€20</span></div>}
                       </td>
                       <td style={{padding:'9px 0',color:'#9ca3af',fontSize:11}}>{k.uhrzeit??k.wochentag_datum}</td>
                       <td style={{padding:'9px 0',textAlign:'right' as const,fontWeight:700,color:'rgba(255,255,255,0.9)'}}>€ {k.fruehbucher_preis}</td>
@@ -538,7 +538,7 @@ function KursRow({kurs,selected,preis,onToggle,compact}:{kurs:Kurs;selected:bool
         <p style={{fontSize:compact?12:13,fontWeight:600,color:'rgba(255,255,255,0.88)'}}>{kurs.titel}</p>
         <p style={{fontSize:10,color:'#9ca3af',marginTop:2}}>{kurs.uhrzeit??kurs.wochentag_datum}</p>
       </div>
-      <span style={{fontSize:compact?12:13,fontWeight:700,color:'#111827',flexShrink:0}}>€ {preis}</span>
+      <span style={{fontSize:compact?12:13,fontWeight:700,color:'#ffc803',flexShrink:0}}>€ {preis}</span>
     </label>
   )
 }

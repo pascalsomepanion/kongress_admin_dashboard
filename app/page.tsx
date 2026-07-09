@@ -185,7 +185,7 @@ export default function AnmeldungPage(){
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes fadeDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
         @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-        .fi:focus{border-color:#ffc803!important;box-shadow:0 0 0 3px rgba(255,200,3,0.15)!important;background:rgba(255,255,255,0.98)!important;outline:none}
+        .fi:focus{border-color:#ffc803!important;box-shadow:0 0 0 3px rgba(255,200,3,0.12)!important;background:rgba(255,255,255,0.1)!important;outline:none}
         .krow:hover{border-color:rgba(255,200,3,0.4)!important}
         .krow.sel{border-color:rgba(255,200,3,0.6)!important;background:rgba(255,200,3,0.06)!important}
         .ghost-btn:hover{background:rgba(255,255,255,0.1)!important}

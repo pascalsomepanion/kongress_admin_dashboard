@@ -1,52 +1,45 @@
+'use client'
 import React from 'react'
 
-type BtnVariant = 'primary' | 'outline' | 'danger' | 'ghost'
-type BtnSize = 'sm' | 'md'
-type BadgeVariant = 'green' | 'yellow' | 'red' | 'blue' | 'gray'
-
-export function Btn({ onClick, children, variant = 'primary', size = 'md', disabled, className }: {
-  onClick?: () => void; children: React.ReactNode; variant?: BtnVariant; size?: BtnSize; disabled?: boolean; className?: string
+export function Btn({
+  onClick, children, variant = 'gold', disabled, size = 'md', type = 'button', className = ''
+}: {
+  onClick?: () => void
+  children: React.ReactNode
+  variant?: 'gold' | 'outline' | 'danger' | 'ghost'
+  disabled?: boolean
+  size?: 'sm' | 'md'
+  type?: 'button' | 'submit'
+  className?: string
 }) {
-  const base = 'inline-flex items-center gap-1.5 font-semibold rounded-xl transition-all border cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
-  const sizes = { sm: 'text-xs px-3 py-1.5', md: 'text-sm px-4 py-2' }
-  const variants = {
-    primary: 'bg-[#FFBF00] border-[#FFBF00] text-black hover:bg-[#FFD54F]',
-    outline: 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50',
-    danger: 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100',
-    ghost: 'bg-transparent border-transparent text-gray-500 hover:bg-gray-50',
-  }
+  const base = 'inline-flex items-center justify-center rounded-xl font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed'
+  const sz = size === 'sm' ? 'px-3 py-1.5 text-xs' : 'px-4 py-2.5 text-sm'
+  const v = {
+    gold: 'bg-[#FFBF00] hover:bg-[#FFD54F] text-black shadow-sm',
+    outline: 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50',
+    danger: 'bg-red-50 border border-red-200 text-red-700 hover:bg-red-100',
+    ghost: 'text-gray-500 hover:text-gray-900 hover:bg-gray-100',
+  }[variant]
   return (
-    <button
-      className={`${base} ${sizes[size]} ${variants[variant]} ${className ?? ''}`}
-      onClick={onClick}
-      disabled={disabled}
-    >
+    <button type={type} onClick={onClick} disabled={disabled} className={`${base} ${sz} ${v} ${className}`}>
       {children}
     </button>
   )
 }
 
-export function Badge({ label, variant = 'gray' }: { label: string; variant?: BadgeVariant }) {
-  const variants = {
-    green: 'bg-green-50 text-green-700 border-green-200',
-    yellow: 'bg-amber-50 text-amber-700 border-amber-200',
-    red: 'bg-red-50 text-red-600 border-red-200',
-    blue: 'bg-blue-50 text-blue-700 border-blue-200',
-    gray: 'bg-gray-100 text-gray-500 border-gray-200',
-  }
-  return (
-    <span className={`inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full border whitespace-nowrap ${variants[variant]}`}>
-      {label}
-    </span>
-  )
+export function Badge({ label, variant }: { label: string; variant: 'green' | 'yellow' | 'red' | 'blue' | 'gray' }) {
+  const v = {
+    green: 'bg-green-100 text-green-800',
+    yellow: 'bg-yellow-100 text-yellow-800',
+    red: 'bg-red-100 text-red-800',
+    blue: 'bg-blue-100 text-blue-800',
+    gray: 'bg-gray-100 text-gray-600',
+  }[variant]
+  return <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${v}`}>{label}</span>
 }
 
 export function Loader() {
-  return (
-    <div className="flex items-center justify-center py-12">
-      <div className="w-7 h-7 border-2 border-gray-100 border-t-[#FFBF00] rounded-full animate-spin" />
-    </div>
-  )
+  return <div className="text-center py-16 text-gray-400 text-sm">Wird geladen…</div>
 }
 
 export function Modal({ title, onClose, children, wide, scroll }: {
@@ -57,7 +50,7 @@ export function Modal({ title, onClose, children, wide, scroll }: {
       <div className={`bg-white rounded-2xl shadow-xl w-full flex flex-col ${wide ? 'max-w-4xl' : 'max-w-lg'} ${scroll ? 'max-h-[90vh]' : ''}`}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
           <h2 className="font-bold text-base text-gray-900">{title}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl leading-none px-1">×</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl leading-none">×</button>
         </div>
         <div className={`px-6 py-5 ${scroll ? 'overflow-y-auto' : ''}`}>{children}</div>
       </div>
@@ -65,52 +58,78 @@ export function Modal({ title, onClose, children, wide, scroll }: {
   )
 }
 
-export function Field({ label, id, value, onChange, span2, type = 'text' }: {
-  label: string; id: string; value: string; onChange: (v: string) => void; span2?: boolean; type?: string
+export function Field({
+  label, id, value, onChange, type = 'text', error, placeholder, span2, readOnly
+}: {
+  label: string; id: string; value: string
+  onChange?: (v: string) => void
+  type?: string; error?: string; placeholder?: string; span2?: boolean; readOnly?: boolean
 }) {
   return (
     <div className={span2 ? 'col-span-2' : ''}>
       <label htmlFor={id} className="block text-xs font-semibold text-gray-500 mb-1.5">{label}</label>
       <input
-        id={id} type={type} value={value} onChange={e => onChange(e.target.value)}
-        className="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#FFBF00] transition-all"
+        id={id} type={type} value={value} readOnly={readOnly}
+        onChange={e => onChange?.(e.target.value)}
+        placeholder={placeholder}
+        className={`w-full bg-gray-50 border-2 rounded-xl px-3 py-2.5 text-sm text-gray-900
+          focus:outline-none focus:bg-white focus:border-[#FFBF00] focus:ring-2 focus:ring-[#FFBF00]/20
+          transition-all ${error ? 'border-red-400 bg-red-50' : 'border-gray-200'}
+          ${readOnly ? 'opacity-60 cursor-not-allowed' : ''}`}
       />
+      {error && <p className="text-xs text-red-600 font-medium mt-1">{error}</p>}
     </div>
   )
 }
 
-export function PageHeader({ title, sub, children }: { title: string; sub?: string; children?: React.ReactNode }) {
+export function PageHeader({
+  title, sub, children
+}: { title: string; sub?: string; children?: React.ReactNode }) {
   return (
-    <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between gap-4 sticky top-0 z-10">
+    <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
       <div>
-        <h1 className="text-base font-bold text-gray-900">{title}</h1>
+        <h1 className="text-lg font-bold text-gray-900">{title}</h1>
         {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
       </div>
-      {children && (
-        <div className="flex gap-2 items-center flex-wrap justify-end">{children}</div>
-      )}
+      {children && <div className="flex items-center gap-3">{children}</div>}
     </div>
   )
 }
 
-export function Table({ headers, children, empty }: { headers: string[]; children?: React.ReactNode; empty?: boolean }) {
+export function Card({ title, children, highlight }: {
+  title: string; children: React.ReactNode; highlight?: boolean
+}) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="border-b border-gray-100 bg-gray-50">
-            {headers.map(h => (
-              <th key={h} className="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400">{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {empty
-            ? <tr><td colSpan={headers.length} className="px-4 py-12 text-center text-sm text-gray-400">Keine Einträge vorhanden</td></tr>
-            : children
-          }
-        </tbody>
-      </table>
+    <div className={`rounded-2xl border p-6 ${highlight ? 'border-[#FFE082] bg-[#FFF9E6]' : 'border-gray-200 bg-white'}`}>
+      <div className="flex items-center gap-2 mb-5">
+        <div className="w-1 h-4 bg-[#FFBF00] rounded-full flex-shrink-0" />
+        <h2 className="text-[10px] font-bold tracking-widest uppercase text-gray-400">{title}</h2>
+      </div>
+      {children}
+    </div>
+  )
+}
+
+export function Table({ headers, children, empty }: {
+  headers: string[]; children: React.ReactNode; empty?: boolean
+}) {
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 border-b border-gray-200">
+            <tr>
+              {headers.map(h => (
+                <th key={h} className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 whitespace-nowrap">
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">{children}</tbody>
+        </table>
+        {empty && <div className="text-center py-12 text-gray-400 text-sm">Keine Einträge gefunden.</div>}
+      </div>
     </div>
   )
 }

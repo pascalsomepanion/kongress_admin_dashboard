@@ -209,7 +209,7 @@ export default function AnmeldungPage(){
         borderBottom:'1px solid rgba(255,200,3,0.12)',
         animation:'fadeDown 0.5s ease',
       }}>
-        <div style={{maxWidth:760,margin:'0 auto',padding:'0 20px'}}>
+        <div style={{maxWidth:760,margin:'0 auto',padding:'0 20px',width:'100%'}}>
           {/* TOP: Anmeldung badge */}
           <div style={{display:'flex',alignItems:'center',justifyContent:'center',paddingTop:14,paddingBottom:6}}>
             <div style={{
@@ -233,7 +233,7 @@ export default function AnmeldungPage(){
             </p>
           </div>
           {/* STEP INDICATOR */}
-          <div style={{display:'flex',alignItems:'center',borderTop:'1px solid rgba(255,255,255,0.06)',paddingTop:10,paddingBottom:12}}>
+          <div style={{display:'flex',alignItems:'center',borderTop:'1px solid rgba(255,255,255,0.06)',paddingTop:10,paddingBottom:12,margin:'0 -0px'}}>
             {(['form','confirm','done'] as Step[]).map((s,i)=>{
               const labels=['Daten & Kurse','Überprüfen','Bestätigung']
               const idx=['form','confirm','done'].indexOf(step)
@@ -261,22 +261,22 @@ export default function AnmeldungPage(){
       </div>
 
       {/* CONTENT */}
-      <div style={{position:'relative',zIndex:1,maxWidth:760,margin:'0 auto',padding:'28px 20px 56px',display:'flex',flexDirection:'column' as const,gap:16,animation:'fadeUp 0.6s ease'}}>
+      <div style={{position:'relative',zIndex:1,maxWidth:760,margin:'0 auto',padding:'28px 20px 56px',display:'flex',flexDirection:'column' as const,gap:16,animation:'fadeUp 0.6s ease',width:'100%'}}>
 
         {/* ── STEP 1 ── */}
         {step==='form'&&<>
           {/* INFO */}
           <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
-            {[
-              {icon:'⭐',label:'Frühbucherbonus',text:`Zahlungseingang bis ${fruehText}. Ab dem Folgetag gilt der Normaltarif.`},
-              {icon:'📋',label:'Stornogebühren',text:`Bis ${stornoFreeText}: kostenlos · Bis ${storno50Text}: 50% · Danach: keine Erstattung`},
-            ].map(c=>(
-              <div key={c.label} style={{background:'rgba(255,200,3,0.1)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',border:'1px solid rgba(255,200,3,0.25)',borderRadius:20,padding:'20px 20px',boxShadow:'0 4px 24px rgba(10,22,40,0.12)'}}>
-                <div style={{fontSize:28,marginBottom:10}}>{c.icon}</div>
-                <p style={{fontSize:12,fontWeight:800,letterSpacing:'0.12em',textTransform:'uppercase' as const,color:'#ffc803',marginBottom:8}}>{c.label}</p>
-                <p style={{fontSize:12,color:'rgba(255,255,255,0.8)',lineHeight:1.7}}>{c.text}</p>
-              </div>
-            ))}
+            <div style={{background:'rgba(255,200,3,0.1)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',border:'1px solid rgba(255,200,3,0.25)',borderRadius:20,padding:'20px 20px',boxShadow:'0 4px 24px rgba(10,22,40,0.12)'}}>
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" style={{marginBottom:10}}><circle cx="16" cy="12" r="7" stroke="#ffc803" strokeWidth="2"/><path d="M10 19c-3 1.5-5 4-5 7h22c0-3-2-5.5-5-7" stroke="#ffc803" strokeWidth="2" strokeLinecap="round"/><path d="M16 5V2M21 7l2-2M11 7L9 5" stroke="#ffc803" strokeWidth="1.5" strokeLinecap="round"/><circle cx="16" cy="12" r="2.5" fill="#ffc803"/></svg>
+              <p style={{fontSize:12,fontWeight:800,letterSpacing:'0.12em',textTransform:'uppercase' as const,color:'#ffc803',marginBottom:8}}>Frühbucherbonus</p>
+              <p style={{fontSize:12,color:'rgba(255,255,255,0.8)',lineHeight:1.7}}>Zahlungseingang bis {fruehText}. Ab dem Folgetag gilt der Normaltarif.</p>
+            </div>
+            <div style={{background:'rgba(255,200,3,0.1)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',border:'1px solid rgba(255,200,3,0.25)',borderRadius:20,padding:'20px 20px',boxShadow:'0 4px 24px rgba(10,22,40,0.12)'}}>
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" style={{marginBottom:10}}><rect x="6" y="4" width="20" height="24" rx="3" stroke="#ffc803" strokeWidth="2"/><path d="M11 12h10M11 17h7" stroke="#ffc803" strokeWidth="1.5" strokeLinecap="round"/><path d="M19 21l2 2 4-4" stroke="#ffc803" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <p style={{fontSize:12,fontWeight:800,letterSpacing:'0.12em',textTransform:'uppercase' as const,color:'#ffc803',marginBottom:8}}>Stornogebühren</p>
+              <p style={{fontSize:12,color:'rgba(255,255,255,0.8)',lineHeight:1.7}}>Bis {stornoFreeText}: kostenlos · Bis {storno50Text}: 50% · Danach: keine Erstattung</p>
+            </div>
           </div>
 
           {/* PREISTABELLE */}
@@ -322,8 +322,8 @@ export default function AnmeldungPage(){
 
           {/* HINWEISE */}
           <div style={{background:'rgba(255,200,3,0.08)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',border:'1px solid rgba(255,200,3,0.2)',borderRadius:20,padding:'22px 24px',boxShadow:'0 4px 24px rgba(10,22,40,0.12)'}}>
-            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16}}>
-              <span style={{fontSize:24}}>⚠️</span>
+            <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:16}}>
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" style={{flexShrink:0}}><path d="M14 3L26 24H2L14 3Z" stroke="#ffc803" strokeWidth="2" strokeLinejoin="round"/><path d="M14 11v6" stroke="#ffc803" strokeWidth="2" strokeLinecap="round"/><circle cx="14" cy="20" r="1.2" fill="#ffc803"/></svg>
               <p style={{fontSize:13,fontWeight:800,letterSpacing:'0.12em',textTransform:'uppercase' as const,color:'#ffc803'}}>Wichtige Hinweise</p>
             </div>
             {['GK LIP und Work-Shop finden gleichzeitig statt — nur eines buchbar','PS und TS laufen parallel — tageweiser Wechsel möglich (PS1=PS2 usw.)','Ski Alpin & Ärztesport über Ski Austria Akademie — im Zimmerpreis inkl.','Steuerliche Absetzbarkeit bei mind. 8 Std. Nachweis'].map((h,i)=>(
@@ -467,7 +467,7 @@ export default function AnmeldungPage(){
             </div>
             <p style={{fontSize:13,color:'rgba(255,255,255,0.6)',marginBottom:18,lineHeight:1.6}}>Bitte überweisen Sie nach der Anmeldung. Nach Zahlungseingang erhalten Sie eine Rechnung per E-Mail.</p>
             <div style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,200,3,0.1)',borderRadius:12,padding:'16px'}}>
-              {[['IBAN',kongress.iban,true],['BIC',kongress.bic,false],['Kontoinhaber',kongress.kontoinhaber,false],['Verwendungszweck',fullName,true],['Betrag',`€ ${gesamtbetrag.toFixed(2)}`,true]].map(([l,v,hi])=>(
+              {[['IBAN',kongress.iban,false],['BIC',kongress.bic,false],['Kontoinhaber',kongress.kontoinhaber,false],['Verwendungszweck',fullName,false],['Betrag',`€ ${gesamtbetrag.toFixed(2)}`,true]].map(([l,v,hi])=>(
                 <div key={l as string} style={{display:'flex',gap:16,padding:'5px 0',alignItems:'baseline'}}>
                   <span style={{fontSize:11,color:'rgba(255,255,255,0.4)',width:128,flexShrink:0}}>{l}</span>
                   <span style={{fontSize:13,fontWeight:600,fontFamily:'monospace',color:hi?'#ffc803':'rgba(255,255,255,0.88)'}}>{v}</span>

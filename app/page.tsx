@@ -210,6 +210,34 @@ export default function AnmeldungPage(){
         animation:'fadeDown 0.5s ease',
       }}>
         <div style={{maxWidth:760,margin:'0 auto',padding:'0 20px',boxSizing:'border-box'}}>
+          {/* STEP INDICATOR */}
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'14px 0'}}>
+            {(['form','confirm','done'] as Step[]).map((s,i)=>{
+              const labels=['Daten & Kurse','Überprüfen','Bestätigung']
+              const idx=['form','confirm','done'].indexOf(step)
+              const active=i===idx,done=i<idx
+              const aligns=['flex-start','center','flex-end']
+              return(
+                <div key={s} style={{display:'flex',alignItems:'center',justifyContent:aligns[i] as any,flex:1}}>
+                  {i>0&&<div style={{flex:1,height:1,background:done?'rgba(255,200,3,0.3)':'rgba(255,255,255,0.08)',marginRight:10,transition:'all 0.3s'}}/>}
+                  <div style={{display:'flex',alignItems:'center',gap:7,flexShrink:0}}>
+                    <div style={{
+                      width:22,height:22,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',
+                      fontSize:9,fontWeight:800,flexShrink:0,transition:'all 0.2s',
+                      background:done?'#ffc803':active?'#ffc803':'rgba(255,255,255,0.1)',
+                      color:done?'#0a1628':active?'#0a1628':'rgba(255,255,255,0.3)',
+                      boxShadow:active?'0 0 12px rgba(255,200,3,0.4)':'none',
+                    }}>{done?'✓':i+1}</div>
+                    <span className="steplabel" style={{fontSize:11,fontWeight:active?600:400,color:active?'rgba(255,255,255,0.9)':'rgba(255,255,255,0.3)',whiteSpace:'nowrap' as const}}>
+                      {labels[i]}
+                    </span>
+                  </div>
+                  {i<2&&<div style={{flex:1,height:1,background:done?'rgba(255,200,3,0.3)':'rgba(255,255,255,0.08)',marginLeft:10,transition:'all 0.3s'}}/>}
+                </div>
+              )
+            })}
+          </div>
+
           {/* TOP: Anmeldung badge */}
           <div style={{display:'flex',alignItems:'center',justifyContent:'center',paddingTop:14,paddingBottom:6}}>
             <div style={{
@@ -238,32 +266,6 @@ export default function AnmeldungPage(){
 
       {/* CONTENT */}
       <div style={{position:'relative',zIndex:1,maxWidth:760,margin:'0 auto',padding:'28px 20px 56px',display:'flex',flexDirection:'column' as const,gap:16,animation:'fadeUp 0.6s ease'}}>
-
-        {/* STEP INDICATOR */}
-        <div style={{display:'flex',alignItems:'center',background:'rgba(10,22,40,0.45)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',border:'1px solid rgba(255,200,3,0.1)',borderRadius:16,padding:'12px 20px'}}>
-          {(['form','confirm','done'] as Step[]).map((s,i)=>{
-            const labels=['Daten & Kurse','Überprüfen','Bestätigung']
-            const idx=['form','confirm','done'].indexOf(step)
-            const active=i===idx,done=i<idx
-            return(
-              <div key={s} style={{display:'flex',alignItems:'center',flex:1,minWidth:0}}>
-                <div style={{display:'flex',alignItems:'center',gap:8}}>
-                  <div style={{
-                    width:22,height:22,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',
-                    fontSize:9,fontWeight:800,flexShrink:0,transition:'all 0.2s',
-                    background:done?'#ffc803':active?'#ffc803':'rgba(255,255,255,0.1)',
-                    color:done?'#0a1628':active?'#0a1628':'rgba(255,255,255,0.3)',
-                    boxShadow:active?'0 0 12px rgba(255,200,3,0.4)':'none',
-                  }}>{done?'✓':i+1}</div>
-                  <span className="steplabel" style={{fontSize:11,fontWeight:active?600:400,color:active?'rgba(255,255,255,0.9)':'rgba(255,255,255,0.3)',whiteSpace:'nowrap' as const}}>
-                    {labels[i]}
-                  </span>
-                </div>
-                {i<2&&<div style={{flex:1,height:1,background:done?'rgba(255,200,3,0.25)':'rgba(255,255,255,0.06)',margin:'0 10px',transition:'all 0.3s'}}/>}
-              </div>
-            )
-          })}
-        </div>
 
         {/* ── STEP 1 ── */}
         {step==='form'&&<>

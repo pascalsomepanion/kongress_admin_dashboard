@@ -209,7 +209,7 @@ export default function AnmeldungPage(){
         borderBottom:'1px solid rgba(255,200,3,0.12)',
         animation:'fadeDown 0.5s ease',
       }}>
-        <div style={{maxWidth:760,margin:'0 auto',padding:'0 20px',width:'100%'}}>
+        <div style={{maxWidth:760,margin:'0 auto',padding:'0 20px'}}>
           {/* TOP: Anmeldung badge */}
           <div style={{display:'flex',alignItems:'center',justifyContent:'center',paddingTop:14,paddingBottom:6}}>
             <div style={{
@@ -233,7 +233,7 @@ export default function AnmeldungPage(){
             </p>
           </div>
           {/* STEP INDICATOR */}
-          <div style={{display:'flex',alignItems:'center',borderTop:'1px solid rgba(255,255,255,0.06)',paddingTop:10,paddingBottom:12,margin:'0 -0px'}}>
+          <div style={{display:'flex',alignItems:'center',borderTop:'1px solid rgba(255,255,255,0.06)',paddingTop:10,paddingBottom:12}}>
             {(['form','confirm','done'] as Step[]).map((s,i)=>{
               const labels=['Daten & Kurse','Überprüfen','Bestätigung']
               const idx=['form','confirm','done'].indexOf(step)
@@ -261,7 +261,7 @@ export default function AnmeldungPage(){
       </div>
 
       {/* CONTENT */}
-      <div style={{position:'relative',zIndex:1,maxWidth:760,margin:'0 auto',padding:'28px 20px 56px',display:'flex',flexDirection:'column' as const,gap:16,animation:'fadeUp 0.6s ease',width:'100%'}}>
+      <div style={{position:'relative',zIndex:1,maxWidth:760,margin:'0 auto',padding:'28px 20px 56px',display:'flex',flexDirection:'column' as const,gap:16,animation:'fadeUp 0.6s ease'}}>
 
         {/* ── STEP 1 ── */}
         {step==='form'&&<>

@@ -185,7 +185,8 @@ export default function AnmeldungPage(){
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes fadeDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
         @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-        .fi:focus{border-color:#ffc803!important;box-shadow:0 0 0 3px rgba(255,200,3,0.12)!important;background:rgba(255,255,255,0.1)!important;outline:none}
+        .fi:focus{border-color:#ffc803!important;box-shadow:0 0 0 3px rgba(255,200,3,0.12)!important;background:rgba(255,255,255,0.08)!important;outline:none}
+        .fi:-webkit-autofill,.fi:-webkit-autofill:hover,.fi:-webkit-autofill:focus{-webkit-box-shadow:0 0 0 1000px rgba(20,35,58,0.95) inset!important;-webkit-text-fill-color:rgba(255,255,255,0.9)!important;border-color:rgba(255,255,255,0.15)!important;transition:background-color 5000s ease-in-out 0s}
         .krow:hover{border-color:rgba(255,200,3,0.4)!important}
         .krow.sel{border-color:rgba(255,200,3,0.6)!important;background:rgba(255,200,3,0.06)!important}
         .ghost-btn:hover{background:rgba(255,255,255,0.1)!important}
@@ -423,12 +424,14 @@ export default function AnmeldungPage(){
               <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'rgba(255,255,255,0.5)'}}>Persönliche Daten</span>
             </div>
             <div style={{padding:'4px 24px 16px'}}>
-              {[['Vorname',form.vorname],['Nachname',form.nachname],['Straße',`${form.strasse} ${form.hausnummer}`],['PLZ / Stadt',`${form.postleitzahl} ${form.stadt}`],['Land',form.land],['ÖÄK-Nr.',form.oeak_nr],['E-Mail',form.email],...(form.ist_oegsmp_mitglied?[['ÖGSMP-Mitglied','Ja']]:[])].map(([l,v])=>(
-                <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'10px 0',borderBottom:'1px solid rgba(255,255,255,0.06)',gap:16}}>
-                  <span style={{fontSize:13,color:'rgba(255,255,255,0.45)',flexShrink:0}}>{l}</span>
-                  <span style={{fontSize:13,fontWeight:600,color:'rgba(255,255,255,0.9)',textAlign:'right' as const}}>{v}</span>
-                </div>
-              ))}
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:0}}>
+                {[['Vorname',form.vorname],['Nachname',form.nachname],['Straße',`${form.strasse} ${form.hausnummer}`],['PLZ / Stadt',`${form.postleitzahl} ${form.stadt}`],['Land',form.land],['ÖÄK-Nr.',form.oeak_nr],['E-Mail',form.email],...(form.ist_oegsmp_mitglied?[['ÖGSMP-Mitglied','Ja']]:[])].map(([l,v])=>(
+                  <div key={l} style={{padding:'12px 16px',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                    <p style={{fontSize:10,fontWeight:600,letterSpacing:'0.1em',textTransform:'uppercase' as const,color:'rgba(255,255,255,0.35)',marginBottom:4}}>{l}</p>
+                    <p style={{fontSize:13,fontWeight:600,color:'rgba(255,255,255,0.9)'}}>{v}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -444,9 +447,9 @@ export default function AnmeldungPage(){
                   <div key={id} style={{padding:'11px 0',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
                     <div style={{display:'flex',justifyContent:'space-between'}}>
                       <span style={{fontSize:13,fontWeight:600,color:'rgba(255,255,255,0.9)'}}>{k.titel}</span>
-                      <span style={{fontSize:13,fontWeight:700,flexShrink:0,marginLeft:16}}>€ {p.toFixed(2)}</span>
+                      <span style={{fontSize:13,fontWeight:700,flexShrink:0,marginLeft:16,color:'rgba(255,255,255,0.9)'}}>€ {p.toFixed(2)}</span>
                     </div>
-                    {k.uhrzeit&&<p style={{fontSize:11,color:'#9ca3af',marginTop:3}}>{k.uhrzeit}</p>}
+                    {k.uhrzeit&&<p style={{fontSize:11,color:'rgba(255,255,255,0.35)',marginTop:3}}>{k.uhrzeit}</p>}
                   </div>
                 )
               })}
@@ -462,12 +465,12 @@ export default function AnmeldungPage(){
               <div style={{width:3,height:14,background:'#ffc803',borderRadius:2}}/>
               <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'rgba(255,200,3,0.6)'}}>Zahlung</span>
             </div>
-            <p style={{fontSize:13,color:'rgba(255,255,255,0.4)',marginBottom:18,lineHeight:1.6}}>Bitte überweisen Sie nach der Anmeldung. Nach Zahlungseingang erhalten Sie eine Rechnung per E-Mail.</p>
+            <p style={{fontSize:13,color:'rgba(255,255,255,0.6)',marginBottom:18,lineHeight:1.6}}>Bitte überweisen Sie nach der Anmeldung. Nach Zahlungseingang erhalten Sie eine Rechnung per E-Mail.</p>
             <div style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,200,3,0.1)',borderRadius:12,padding:'16px'}}>
               {[['IBAN',kongress.iban,true],['BIC',kongress.bic,false],['Kontoinhaber',kongress.kontoinhaber,false],['Verwendungszweck',fullName,true],['Betrag',`€ ${gesamtbetrag.toFixed(2)}`,true]].map(([l,v,hi])=>(
                 <div key={l as string} style={{display:'flex',gap:16,padding:'5px 0',alignItems:'baseline'}}>
-                  <span style={{fontSize:11,color:'rgba(255,255,255,0.3)',width:128,flexShrink:0}}>{l}</span>
-                  <span style={{fontSize:13,fontWeight:600,fontFamily:'monospace',color:hi?'#ffc803':'rgba(255,255,255,0.65)'}}>{v}</span>
+                  <span style={{fontSize:11,color:'rgba(255,255,255,0.4)',width:128,flexShrink:0}}>{l}</span>
+                  <span style={{fontSize:13,fontWeight:600,fontFamily:'monospace',color:hi?'#ffc803':'rgba(255,255,255,0.88)'}}>{v}</span>
                 </div>
               ))}
             </div>
@@ -496,7 +499,7 @@ export default function AnmeldungPage(){
               {[['Betrag',`€ ${gesamtbetrag.toFixed(2)}`,true],['IBAN',kongress.iban,false],['BIC',kongress.bic,false],['Verwendungszweck',fullName,true]].map(([l,v,hi])=>(
                 <div key={l as string} style={{display:'flex',gap:16,padding:'5px 0'}}>
                   <span style={{fontSize:11,color:'rgba(255,255,255,0.3)',width:120,flexShrink:0}}>{l}</span>
-                  <span style={{fontSize:13,fontWeight:600,fontFamily:'monospace',color:hi?'#ffc803':'rgba(255,255,255,0.65)'}}>{v}</span>
+                  <span style={{fontSize:13,fontWeight:600,fontFamily:'monospace',color:hi?'#ffc803':'rgba(255,255,255,0.88)'}}>{v}</span>
                 </div>
               ))}
             </div>

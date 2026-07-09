@@ -391,18 +391,20 @@ export default function AnmeldungPage(){
           {selected.size>0&&(
             <div style={{...glassDark,padding:'20px 24px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
               <div>
-                <p style={{fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:4}}>{selected.size} Kurs{selected.size!==1?'e':''} ausgewählt</p>
-                <p style={{fontSize:28,fontWeight:800,color:'#fff',letterSpacing:'-0.02em'}}>€ {gesamtbetrag.toFixed(2)}</p>
-              </div>
-              {frueh
-                ?<div style={{textAlign:'right' as const}}>
-                  <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(255,200,3,0.12)',border:'1px solid rgba(255,200,3,0.25)',borderRadius:100,padding:'5px 12px',fontSize:10,fontWeight:700,color:'#ffc803',letterSpacing:'0.1em'}}>
-                    Frühbucherpreis
+                {frueh
+                  ?<div>
+                    <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(255,200,3,0.12)',border:'1px solid rgba(255,200,3,0.25)',borderRadius:100,padding:'5px 12px',fontSize:10,fontWeight:700,color:'#ffc803',letterSpacing:'0.1em',marginBottom:6}}>
+                      Frühbucherpreis
+                    </div>
+                    <p style={{fontSize:11,color:'rgba(255,255,255,0.3)'}}>bis {fruehText}</p>
                   </div>
-                  <p style={{fontSize:11,color:'rgba(255,255,255,0.3)',marginTop:6}}>bis {fruehText}</p>
-                </div>
-                :<div style={{display:'inline-flex',alignItems:'center',background:'rgba(255,255,255,0.06)',borderRadius:100,padding:'5px 12px',fontSize:10,fontWeight:600,color:'rgba(255,255,255,0.3)'}}>Normaltarif</div>
-              }
+                  :<div style={{display:'inline-flex',alignItems:'center',background:'rgba(255,255,255,0.06)',borderRadius:100,padding:'5px 12px',fontSize:10,fontWeight:600,color:'rgba(255,255,255,0.3)'}}>Normaltarif</div>
+                }
+              </div>
+              <div style={{textAlign:'right' as const}}>
+                <p style={{fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:4}}>{selected.size} Kurs{selected.size!==1?'e':''} ausgewählt</p>
+                <p style={{fontSize:32,fontWeight:800,color:'#ffc803',letterSpacing:'-0.02em'}}>€ {gesamtbetrag.toFixed(2)}</p>
+              </div>
             </div>
           )}
 

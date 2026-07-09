@@ -417,7 +417,7 @@ export default function AnmeldungPage(){
 
         {/* ── STEP 2 ── */}
         {step==='confirm'&&<>
-          <div style={{background:'rgba(20,35,58,0.72)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,200,3,0.15)',boxShadow:'0 8px 40px rgba(10,22,40,0.25)',overflow:'hidden'}>
+          <div style={{background:'rgba(20,35,58,0.72)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,200,3,0.15)',boxShadow:'0 8px 40px rgba(10,22,40,0.25)',overflow:'hidden'}}>
             <div style={{background:'rgba(0,0,0,0.2)',borderBottom:'1px solid rgba(255,200,3,0.1)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
               <div style={{width:3,height:14,background:'#ffc803',borderRadius:2}}/>
               <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'rgba(255,255,255,0.5)'}}>Persönliche Daten</span>
@@ -432,7 +432,7 @@ export default function AnmeldungPage(){
             </div>
           </div>
 
-          <div style={{background:'rgba(20,35,58,0.72)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,200,3,0.15)',boxShadow:'0 8px 40px rgba(10,22,40,0.25)',overflow:'hidden'}>
+          <div style={{background:'rgba(20,35,58,0.72)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:20,border:'1px solid rgba(255,200,3,0.15)',boxShadow:'0 8px 40px rgba(10,22,40,0.25)',overflow:'hidden'}}>
             <div style={{background:'rgba(0,0,0,0.2)',borderBottom:'1px solid rgba(255,200,3,0.1)',padding:'16px 24px',display:'flex',alignItems:'center',gap:10}}>
               <div style={{width:3,height:14,background:'#ffc803',borderRadius:2}}/>
               <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'rgba(255,255,255,0.5)'}}>Gebuchte Kurse</span>

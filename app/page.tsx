@@ -232,7 +232,24 @@ export default function AnmeldungPage(){
               {kongress.ort} · {new Date(kongress.datum_von).toLocaleDateString('de-AT')} – {new Date(kongress.datum_bis).toLocaleDateString('de-AT')}
             </p>
           </div>
-
+          {/* STEP INDICATOR */}
+          <div style={{display:'flex',alignItems:'center',borderTop:'1px solid rgba(255,255,255,0.08)',padding:'12px 0'}}>
+            {(['form','confirm','done'] as Step[]).map((s,i)=>{
+              const labels=['Daten & Kurse','Überprüfen','Bestätigung']
+              const idx=['form','confirm','done'].indexOf(step)
+              const active=i===idx,done=i<idx
+              return(
+                <div key={s} style={{display:'flex',alignItems:'center',flex:1}}>
+                  {i>0&&<div style={{flex:1,height:1,background:done?'rgba(255,200,3,0.3)':'rgba(255,255,255,0.08)',marginRight:10,transition:'all 0.3s'}}/>}
+                  <div style={{display:'flex',alignItems:'center',gap:7,flexShrink:0,justifyContent:i===0?'flex-start':i===1?'center':'flex-end'}}>
+                    <div style={{width:22,height:22,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9,fontWeight:800,flexShrink:0,background:done?'#ffc803':active?'#ffc803':'rgba(255,255,255,0.1)',color:done?'#0a1628':active?'#0a1628':'rgba(255,255,255,0.3)',boxShadow:active?'0 0 12px rgba(255,200,3,0.4)':'none',transition:'all 0.2s'}}>{done?'✓':i+1}</div>
+                    <span className="steplabel" style={{fontSize:11,fontWeight:active?600:400,color:active?'rgba(255,255,255,0.9)':'rgba(255,255,255,0.3)',whiteSpace:'nowrap' as const}}>{labels[i]}</span>
+                  </div>
+                  {i<2&&<div style={{flex:1,height:1,background:done?'rgba(255,200,3,0.3)':'rgba(255,255,255,0.08)',marginLeft:10,transition:'all 0.3s'}}/>}
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
 

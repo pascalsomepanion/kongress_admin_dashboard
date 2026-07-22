@@ -67,6 +67,19 @@ export default function ZahlungenPage(){
     setSaving(null)
   }
 
+  async function barBezahlt(buchungen:Buchung[]){
+    const ids=buchungen.filter(b=>b.zahlungsstatus==='ausstehend').map(b=>b.id)
+    if(!ids.length)return
+    if(!confirm('Barzahlung bestätigen? Zahlung wird als bar bezahlt markiert.'))return
+    const key=buchungen[0].rechnungsnummer??`k_${buchungen[0].id}`
+    setSaving(key+'_bar')
+    for(const id of ids){
+      await supabase.from('buchungen').update({zahlungsstatus:'bezahlt',zahlungs_eingang_am:new Date().toISOString()}).eq('id',id)
+    }
+    if(k)await loadData(k.id)
+    setSaving(null)
+  }
+
   const filtered=gruppen.filter(g=>{
     const s=q.toLowerCase()
     const matchQ=!q||`${g.vorname} ${g.nachname} ${g.email}`.toLowerCase().includes(s)
@@ -136,9 +149,14 @@ export default function ZahlungenPage(){
                             </div>
                             <div className="flex gap-2">
                               {rg.hasOffen&&(
-                                <Btn size="sm" onClick={()=>setBezahlt(rg.buchungen)} disabled={saving===(rg.rNr??`k_${rg.buchungen[0].id}`)}>
-                                  {saving===(rg.rNr??`k_${rg.buchungen[0].id}`)?'Speichert…':`✓ Zahlung erhalten${rg.rNr?' — '+rg.rNr:''}`}
-                                </Btn>
+                                <>
+                                  <Btn size="sm" onClick={()=>setBezahlt(rg.buchungen)} disabled={!!saving}>
+                                    {saving===(rg.rNr??`k_${rg.buchungen[0].id}`)?'Speichert…':`✓ Überweisung erhalten`}
+                                  </Btn>
+                                  <Btn size="sm" variant="outline" onClick={()=>barBezahlt(rg.buchungen)} disabled={!!saving}>
+                                    💵 Bar bezahlt
+                                  </Btn>
+                                </>
                               )}
                               {rg.allBezahlt&&rg.buchungen.some(b=>b.zahlungsstatus==='bezahlt')&&(
                                 <Btn size="sm" variant="outline" onClick={()=>zuruecksetzen(rg.buchungen)}>Zurücksetzen</Btn>

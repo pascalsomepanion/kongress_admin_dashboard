@@ -4,8 +4,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/db'
 const NAV=[{href:'/admin',label:'Dashboard',icon:'📊'},{href:'/admin/teilnehmer',label:'Teilnehmer',icon:'👥'},{href:'/admin/buchungen',label:'Zahlungen',icon:'💶'},{href:'/admin/rechnungen',label:'Rechnungen',icon:'🧾'},{href:'/admin/sponsoren',label:'Sponsoren',icon:'🏢'},{href:'/admin/kurse',label:'Kurse',icon:'📚'},{href:'/admin/kongress',label:'Kongress',icon:'🏆'},{href:'/admin/export',label:'Export',icon:'📥'},
-        {href:'/admin/anwesenheit',label:'Anwesenheit',icon:'✓'},
-        {href:'/admin/referenten',label:'Referenten',icon:'🎤'}]
+        {href:'/admin/anwesenheit',label:'Anwesenheit',icon:'✓'},{href:'/admin/referenten',label:'Referenten',icon:'🎤'},{href:'/admin/nachrichten',label:'Nachrichten',icon:'📨'}]
 export default function AdminLayout({children}:{children:React.ReactNode}){
   const router=useRouter(),pathname=usePathname()
   const [ok,setOk]=useState(false),[email,setEmail]=useState('')

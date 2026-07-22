@@ -1,7 +1,7 @@
 'use client'
 import{useEffect,useState}from'react'
 import{supabase,getAktuellerKongress,type Kongress}from'@/lib/db'
-import{Btn,Badge,Loader,PageHeader}from'@/lib/ui'
+import{Btn,Badge,Loader,Modal,Field,PageHeader}from'@/lib/ui'
 
 type Buchung={id:number;kurs_id:number;gebuchter_preis:number;zahlungsstatus:string;zahlungs_eingang_am:string|null;rechnungsnummer:string|null;gebucht_am:string;kurse:{titel:string;uhrzeit:string|null}}
 type TeilnehmerGruppe={tnId:number;vorname:string;nachname:string;email:string;buchungen:Buchung[]}
@@ -14,11 +14,14 @@ export default function ZahlungenPage(){
   const[sf,setSf]=useState('ausstehend')
   const[expanded,setExpanded]=useState<number|null>(null)
   const[saving,setSaving]=useState<string|null>(null)
+  const[zahlungModal,setZahlungModal]=useState<{buchungen:Buchung[];bar:boolean}|null>(null)
+  const[zahlungDatum,setZahlungDatum]=useState('')
+  const[frühbucherWarnung,setFrühbucherWarnung]=useState<{differenz:number;bis:string}|null>(null)
 
   useEffect(()=>{getAktuellerKongress().then(async k=>{if(!k){setLoading(false);return};setK(k);await loadData(k.id);setLoading(false)})},[])
 
   async function loadData(kid:number){
-    const{data}=await supabase.from('buchungen').select('id,kurs_id,gebuchter_preis,zahlungsstatus,zahlungs_eingang_am,rechnungsnummer,gebucht_am,teilnehmer_id,teilnehmer(id,vorname,nachname,email),kurse(titel,uhrzeit)').eq('kongress_id',kid).order('gebucht_am',{ascending:false})
+    const{data}=await supabase.from('buchungen').select('id,kurs_id,gebuchter_preis,zahlungsstatus,zahlungs_eingang_am,rechnungsnummer,gebucht_am,teilnehmer_id,teilnehmer(id,vorname,nachname,email),kurse(titel,uhrzeit)').eq('kongress_id',kid).gt('gebuchter_preis',0).order('gebucht_am',{ascending:false})
     const map:Record<number,TeilnehmerGruppe>={}
     ;(data??[]).forEach((b:any)=>{
       const tid=b.teilnehmer_id
@@ -43,16 +46,47 @@ export default function ZahlungenPage(){
     }))
   }
 
-  async function setBezahlt(buchungen:Buchung[]){
+  function openZahlungModal(buchungen:Buchung[],bar:boolean){
+    const heute=new Date().toISOString().split('T')[0]
+    setZahlungDatum(heute)
+    setFrühbucherWarnung(null)
+    setZahlungModal({buchungen,bar})
+  }
+
+  function checkFrühbucher(datum:string){
+    setZahlungDatum(datum)
+    if(!k||!datum)return
+    const zahlDat=new Date(datum)
+    const fruehBis=new Date(k.fruehbucher_bis)
+    if(zahlDat>fruehBis&&zahlungModal){
+      // Check if any booking used Frühbucherpreis
+      const offene=zahlungModal.buchungen.filter(b=>b.zahlungsstatus==='ausstehend')
+      // We can't know exact Frühbucherpreis here without kurse data
+      // Just warn that Frühbucherfrist was exceeded
+      setFrühbucherWarnung({
+        differenz:0,
+        bis:fruehBis.toLocaleDateString('de-AT')
+      })
+    } else {
+      setFrühbucherWarnung(null)
+    }
+  }
+
+  async function bestaetigeZahlung(){
+    if(!zahlungModal||!k)return
+    const{buchungen,bar}=zahlungModal
     const ids=buchungen.filter(b=>b.zahlungsstatus==='ausstehend').map(b=>b.id)
     if(!ids.length)return
     const key=buchungen[0].rechnungsnummer??`k_${buchungen[0].id}`
     setSaving(key)
+    const zahlDat=new Date(zahlungDatum).toISOString()
     for(const id of ids){
-      await supabase.from('buchungen').update({zahlungsstatus:'bezahlt',zahlungs_eingang_am:new Date().toISOString()}).eq('id',id)
+      await supabase.from('buchungen').update({zahlungsstatus:'bezahlt',zahlungs_eingang_am:zahlDat}).eq('id',id)
     }
     if(k)await loadData(k.id)
     setSaving(null)
+    setZahlungModal(null)
+    setFrühbucherWarnung(null)
   }
 
   async function zuruecksetzen(buchungen:Buchung[]){
@@ -62,19 +96,6 @@ export default function ZahlungenPage(){
       if(b.zahlungsstatus==='bezahlt'){
         await supabase.from('buchungen').update({zahlungsstatus:'ausstehend',zahlungs_eingang_am:null}).eq('id',b.id)
       }
-    }
-    if(k)await loadData(k.id)
-    setSaving(null)
-  }
-
-  async function barBezahlt(buchungen:Buchung[]){
-    const ids=buchungen.filter(b=>b.zahlungsstatus==='ausstehend').map(b=>b.id)
-    if(!ids.length)return
-    if(!confirm('Barzahlung bestätigen? Zahlung wird als bar bezahlt markiert.'))return
-    const key=buchungen[0].rechnungsnummer??`k_${buchungen[0].id}`
-    setSaving(key+'_bar')
-    for(const id of ids){
-      await supabase.from('buchungen').update({zahlungsstatus:'bezahlt',zahlungs_eingang_am:new Date().toISOString()}).eq('id',id)
     }
     if(k)await loadData(k.id)
     setSaving(null)
@@ -139,7 +160,7 @@ export default function ZahlungenPage(){
                             <div className="flex items-center gap-2">
                               {rg.rNr
                                 ?<span className="text-xs font-bold text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded-lg">📄 {rg.rNr}</span>
-                                :<span className="text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg">⚡ Nachbuchung</span>
+                                :<span className="text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg">⚡ Ohne Rechnung</span>
                               }
                               <span className="text-xs font-bold text-gray-700">
                                 € {rg.buchungen.filter(b=>b.zahlungsstatus!=='storniert').reduce((s,b)=>s+b.gebuchter_preis,0).toFixed(2)}
@@ -150,10 +171,10 @@ export default function ZahlungenPage(){
                             <div className="flex gap-2">
                               {rg.hasOffen&&(
                                 <>
-                                  <Btn size="sm" onClick={()=>setBezahlt(rg.buchungen)} disabled={!!saving}>
-                                    {saving===(rg.rNr??`k_${rg.buchungen[0].id}`)?'Speichert…':`✓ Überweisung erhalten`}
+                                  <Btn size="sm" onClick={()=>openZahlungModal(rg.buchungen,false)} disabled={!!saving}>
+                                    ✓ Überweisung erhalten
                                   </Btn>
-                                  <Btn size="sm" variant="outline" onClick={()=>barBezahlt(rg.buchungen)} disabled={!!saving}>
+                                  <Btn size="sm" variant="outline" onClick={()=>openZahlungModal(rg.buchungen,true)} disabled={!!saving}>
                                     💵 Bar bezahlt
                                   </Btn>
                                 </>
@@ -187,6 +208,47 @@ export default function ZahlungenPage(){
           </div>
         )}
       </div>
+    </div>
+
+      {/* ZAHLUNG MODAL */}
+      {zahlungModal&&(
+        <Modal title={zahlungModal.bar?'Barzahlung bestätigen':'Zahlung bestätigen'} onClose={()=>{setZahlungModal(null);setFrühbucherWarnung(null)}}>
+          <div className="space-y-4">
+            <div className="bg-gray-50 rounded-xl p-4">
+              {zahlungModal.buchungen.filter(b=>b.zahlungsstatus==='ausstehend').map(b=>(
+                <div key={b.id} className="flex justify-between text-sm py-1.5 border-b border-gray-200 last:border-0">
+                  <span>{b.kurse.titel}</span>
+                  <span className="font-bold">€ {b.gebuchter_preis.toFixed(2)}</span>
+                </div>
+              ))}
+              <div className="flex justify-between font-bold text-sm pt-2 mt-1">
+                <span>Gesamt</span>
+                <span>€ {zahlungModal.buchungen.filter(b=>b.zahlungsstatus==='ausstehend').reduce((s,b)=>s+b.gebuchter_preis,0).toFixed(2)}</span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-2">Zahlungseingang (Datum)</label>
+              <input type="date" value={zahlungDatum} onChange={e=>checkFrühbucher(e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#FFBF00]"/>
+            </div>
+
+            {frühbucherWarnung&&(
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <p className="text-sm font-bold text-amber-800">⚠ Frühbucherfrist überschritten</p>
+                <p className="text-xs text-amber-700 mt-1">Die Frühbucherfrist war am {frühbucherWarnung.bis} abgelaufen. Prüfe ob der gebuchte Preis dem Normaltarif entspricht. Falls nicht, stelle eine Nachforderung.</p>
+              </div>
+            )}
+
+            <div className="flex gap-3 justify-end pt-2">
+              <Btn variant="outline" onClick={()=>{setZahlungModal(null);setFrühbucherWarnung(null)}}>Abbrechen</Btn>
+              <Btn onClick={bestaetigeZahlung} disabled={!!saving||!zahlungDatum}>
+                {saving?'Speichert…':zahlungModal.bar?'💵 Barzahlung bestätigen':'✓ Zahlung bestätigen'}
+              </Btn>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   )
 }

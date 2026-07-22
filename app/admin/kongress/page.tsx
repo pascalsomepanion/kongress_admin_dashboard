@@ -54,6 +54,7 @@ export default function KongressPage(){
             <Field label="BIC" id="c-bc" value={edit.bic??''} onChange={v=>setEdit({...edit,bic:v})}/>
             <Field label="Kontoinhaber" id="c-ki" value={edit.kontoinhaber??''} onChange={v=>setEdit({...edit,kontoinhaber:v})}/>
             <Field label="Kontakt-Email" id="c-em" value={edit.kontakt_email??''} onChange={v=>setEdit({...edit,kontakt_email:v})} span2 type="email"/>
+            <Field label="DFP-ID (von ÖÄK, jährlich neu)" id="c-dfp" value={(edit as any).dfp_id??''} onChange={v=>setEdit({...edit,dfp_id:v} as any)} span2/>
             <div className="col-span-2"><label className="block text-xs font-semibold text-gray-500 mb-1.5">Begrüßungstext</label><textarea value={edit.begruessung??''} onChange={e=>setEdit({...edit,begruessung:e.target.value})} rows={3} className="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#FFBF00]"/></div>
           </div>
           <div className="flex gap-3 justify-end"><Btn variant="outline" onClick={()=>setEdit(null)}>Abbrechen</Btn><Btn onClick={save} disabled={saving}>{saving?'Speichert…':'Speichern'}</Btn></div>

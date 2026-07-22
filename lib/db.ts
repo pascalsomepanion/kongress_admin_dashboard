@@ -26,6 +26,7 @@ export type Kongress = {
   kontakt_email: string
   begruessung: string
   sekretariat_zeiten: string
+  dfp_id: string | null
 }
 
 export type Kurs = {
@@ -47,6 +48,7 @@ export type Kurs = {
   dfp_punkte_gesamt: number | null
   einheiten_gesamt: number
   ist_pflichtprogramm: boolean
+  oeak_kategorie: string | null
 }
 
 export type Teilnehmer = {

@@ -208,7 +208,6 @@ export default function ZahlungenPage(){
           </div>
         )}
       </div>
-    </div>
 
       {/* ZAHLUNG MODAL */}
       {zahlungModal&&(

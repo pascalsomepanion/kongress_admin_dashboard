@@ -44,7 +44,7 @@ export default function DashboardPage(){
 
     // Kursbelegung
     const belegMap:Record<string,number>={}
-    buchungen.filter((b:any)=>b.zahlungsstatus!=='storniert').forEach((b:any)=>{
+    buchungen.filter((b:any)=>b.zahlungsstatus!=='storniert'&&b.gebuchter_preis>0).forEach((b:any)=>{
       const titel=(b.kurse as any)?.titel??'Unbekannt'
       belegMap[titel]=(belegMap[titel]??0)+1
     })

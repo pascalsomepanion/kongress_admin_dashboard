@@ -12,7 +12,7 @@ type RechGruppe={rNr:string|null;buchungen:Buchung[];bezahlt:boolean;hasOffen:bo
 function stornoErstattung(betrag:number,k:Kongress):{erstattung:number;einbehalt:number;typ:'kostenlos'|'50prozent'|'keine'}{
   const h=new Date()
   if(h<=new Date(k.storno_kostenlos_bis))return{erstattung:betrag,einbehalt:0,typ:'kostenlos'}
-  if(h<=new Date(k.storno_50_bis))return{erstattung:Math.round(betrag*50)/100,einbehalt:Math.round(betrag*50)/100,typ:'50prozent'}
+  if(h<=new Date(k.storno_50_bis))return{erstattung:Math.round(betrag*0.5*100)/100,einbehalt:Math.round(betrag*0.5*100)/100,typ:'50prozent'}
   return{erstattung:0,einbehalt:betrag,typ:'keine'}
 }
 

@@ -1,10 +1,11 @@
 'use client'
-import{useEffect,useState,useRef}from'react'
+import{useEffect,useState}from'react'
 import{supabase,getAktuellerKongress,getKurse,type Kongress,type Kurs}from'@/lib/db'
 import{Btn,Loader,PageHeader}from'@/lib/ui'
 
 type Teilnehmer={id:number;vorname:string;nachname:string;oeak_nr:string;email:string}
 type Buchung={id:number;kurs_id:number;zahlungsstatus:string;einheiten_besucht:number|null;dfp_erhalten:number|null;kurse:{titel:string;untertitel:string|null;dfp_punkte_gesamt:number|null;einheiten_gesamt:number;kurs_gruppe:string;uhrzeit:string|null;wochentag_datum:string;oeak_kategorie:string|null}}
+type PflichtAnw={id?:number;teilnehmer_id:number;kurs_id:number;kongress_id:number;einheiten_besucht:number;dfp_erhalten:number}
 
 export default function AnwesenheitPage(){
   const[k,setK]=useState<Kongress|null>(null)
@@ -14,6 +15,7 @@ export default function AnwesenheitPage(){
   const[q,setQ]=useState('')
   const[expanded,setExpanded]=useState<number|null>(null)
   const[buchungen,setBuchungen]=useState<Record<number,Buchung[]>>({})
+  const[pflichtAnw,setPflichtAnw]=useState<Record<number,PflichtAnw[]>>({})
   const[saving,setSaving]=useState<number|null>(null)
   const[savedMsg,setSavedMsg]=useState<number|null>(null)
   const[preview,setPreview]=useState<string|null>(null)
@@ -38,119 +40,126 @@ export default function AnwesenheitPage(){
     if(expanded===t.id){setExpanded(null);return}
     setExpanded(t.id)
     if(!buchungen[t.id]){
-      // Load existing bookings
-      const{data}=await supabase.from('buchungen')
-        .select('id,kurs_id,zahlungsstatus,einheiten_besucht,dfp_erhalten,kurse(titel,untertitel,dfp_punkte_gesamt,einheiten_gesamt,kurs_gruppe,uhrzeit,wochentag_datum,oeak_kategorie)')
-        .eq('teilnehmer_id',t.id).neq('zahlungsstatus','storniert')
-      const existing=(data as unknown as Buchung[])??[]
-
-      // For Pflichtkurse: create booking with €0 if not exists
-      const existingKursIds=existing.map(b=>b.kurs_id)
-      const missingPflicht=pflichtkurse.filter(pk=>!existingKursIds.includes(pk.id))
-      for(const pk of missingPflicht){
-        const{data:newB}=await supabase.from('buchungen').insert({
-          teilnehmer_id:t.id,kurs_id:pk.id,gebuchter_preis:0,
-          zahlungsstatus:'bezahlt',kongress_id:k!.id,
-          gebucht_am:new Date().toISOString()
-        }).select('id,kurs_id,zahlungsstatus,einheiten_besucht,dfp_erhalten,kurse(titel,untertitel,dfp_punkte_gesamt,einheiten_gesamt,kurs_gruppe,uhrzeit,wochentag_datum,oeak_kategorie)').single()
-        if(newB)existing.push(newB as unknown as Buchung)
-      }
-      setBuchungen(prev=>({...prev,[t.id]:existing}))
+      const[{data:b},{data:pa}]=await Promise.all([
+        supabase.from('buchungen')
+          .select('id,kurs_id,zahlungsstatus,einheiten_besucht,dfp_erhalten,kurse(titel,untertitel,dfp_punkte_gesamt,einheiten_gesamt,kurs_gruppe,uhrzeit,wochentag_datum,oeak_kategorie)')
+          .eq('teilnehmer_id',t.id).neq('zahlungsstatus','storniert').gt('gebuchter_preis',0),
+        supabase.from('pflicht_anwesenheit').select('*').eq('teilnehmer_id',t.id)
+      ])
+      setBuchungen(prev=>({...prev,[t.id]:(b as unknown as Buchung[])??[]}))
+      // Init pflicht entries for all Pflichtkurse
+      const existingPA=(pa as PflichtAnw[])??[]
+      const fullPA=pflichtkurse.map(pk=>{
+        const existing=existingPA.find(p=>p.kurs_id===pk.id)
+        return existing??{teilnehmer_id:t.id,kurs_id:pk.id,kongress_id:k!.id,einheiten_besucht:0,dfp_erhalten:0}
+      })
+      setPflichtAnw(prev=>({...prev,[t.id]:fullPA}))
     }
   }
 
   function updateEinheiten(tnId:number,buchungId:number,val:number,kurs:Buchung['kurse']){
-    const dfpProEinheit=kurs.dfp_punkte_gesamt&&kurs.einheiten_gesamt?(kurs.dfp_punkte_gesamt/kurs.einheiten_gesamt):0
-    const dfp=Math.round(dfpProEinheit*val*10)/10
-    setBuchungen(prev=>({...prev,[tnId]:prev[tnId].map(b=>b.id===buchungId?{...b,einheiten_besucht:val,dfp_erhalten:dfp}:b)}))
+    const maxVal=Math.min(val,kurs.einheiten_gesamt)
+    const dfp=kurs.dfp_punkte_gesamt&&kurs.einheiten_gesamt?Math.round((kurs.dfp_punkte_gesamt/kurs.einheiten_gesamt)*maxVal*10)/10:0
+    setBuchungen(prev=>({...prev,[tnId]:prev[tnId].map(b=>b.id===buchungId?{...b,einheiten_besucht:maxVal,dfp_erhalten:dfp}:b)}))
+  }
+
+  function updatePflicht(tnId:number,kursId:number,val:number,kurs:Kurs){
+    const maxVal=Math.min(val,kurs.einheiten_gesamt)
+    const dfp=kurs.dfp_punkte_gesamt&&kurs.einheiten_gesamt?Math.round((kurs.dfp_punkte_gesamt/kurs.einheiten_gesamt)*maxVal*10)/10:0
+    setPflichtAnw(prev=>({...prev,[tnId]:prev[tnId].map(p=>p.kurs_id===kursId?{...p,einheiten_besucht:maxVal,dfp_erhalten:dfp}:p)}))
   }
 
   async function saveAnwesenheit(tnId:number){
     setSaving(tnId)
+    // Save regular bookings
     for(const b of buchungen[tnId]??[]){
       await supabase.from('buchungen').update({einheiten_besucht:b.einheiten_besucht,dfp_erhalten:b.dfp_erhalten}).eq('id',b.id)
     }
+    // Save pflicht anwesenheit via upsert
+    for(const p of pflichtAnw[tnId]??[]){
+      await supabase.from('pflicht_anwesenheit').upsert({
+        teilnehmer_id:p.teilnehmer_id,kurs_id:p.kurs_id,kongress_id:p.kongress_id,
+        einheiten_besucht:p.einheiten_besucht,dfp_erhalten:p.dfp_erhalten
+      },{onConflict:'teilnehmer_id,kurs_id'})
+    }
     setSaving(null)
     setSavedMsg(tnId)
-    setTimeout(()=>setSavedMsg(null),2000)
+    setTimeout(()=>setSavedMsg(null),2500)
   }
 
   function calcDfpTotal(tnId:number):number{
-    return Math.round((buchungen[tnId]??[]).reduce((s,b)=>s+(b.dfp_erhalten??0),0)*10)/10
+    const buchDfp=(buchungen[tnId]??[]).reduce((s,b)=>s+(b.dfp_erhalten??0),0)
+    const pflichtDfp=(pflichtAnw[tnId]??[]).reduce((s,p)=>s+p.dfp_erhalten,0)
+    return Math.round((buchDfp+pflichtDfp)*10)/10
+  }
+
+  function calcStundenTotal(tnId:number):number{
+    const buchStd=(buchungen[tnId]??[]).reduce((s,b)=>s+(b.einheiten_besucht??0),0)
+    const pflichtStd=(pflichtAnw[tnId]??[]).reduce((s,p)=>s+p.einheiten_besucht,0)
+    return buchStd+pflichtStd
   }
 
   function buildBestaetigung(t:Teilnehmer,tnId:number):string{
     if(!k)return''
     const bs=(buchungen[tnId]??[]).filter(b=>(b.einheiten_besucht??0)>0)
+    const ps=(pflichtAnw[tnId]??[]).filter(p=>p.einheiten_besucht>0)
     const total=calcDfpTotal(tnId)
-    const totalStunden=bs.reduce((s,b)=>s+(b.einheiten_besucht??0),0)
+    const totalStunden=calcStundenTotal(tnId)
     const datum=`${new Date(k.datum_von).toLocaleDateString('de-AT',{day:'numeric',month:'long',year:'numeric'})} – ${new Date(k.datum_bis).toLocaleDateString('de-AT',{day:'numeric',month:'long',year:'numeric'})}`
     const ort=k.ort??'St. Christoph am Arlberg'
     const dfpId=(k as any).dfp_id??''
 
-    const kursRows=bs.map(b=>`
+    const buchRows=bs.map(b=>`
       <tr>
         <td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:11px;font-weight:600;color:#111">
-          ${b.kurse.titel}
-          ${b.kurse.untertitel?`<div style="font-size:10px;color:#666;font-weight:400;font-style:italic;margin-top:2px">"${b.kurse.untertitel}"</div>`:''}
+          ${b.kurse.titel}${b.kurse.untertitel?`<div style="font-size:10px;color:#666;font-weight:400;font-style:italic;margin-top:2px">"${b.kurse.untertitel}"</div>`:''}
         </td>
         <td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:11px;font-weight:600">${b.einheiten_besucht??0}</td>
         <td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:11px;font-weight:700;color:#111">${b.dfp_erhalten??0}</td>
       </tr>`).join('')
 
-    return`<!DOCTYPE html>
-<html lang="de">
-<head>
-<meta charset="utf-8">
-<title>Teilnahmebestätigung — ${t.nachname} ${t.vorname}</title>
-<style>
-  @page{size:A4;margin:15mm 20mm 25mm 20mm}
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#111;line-height:1.5}
-  @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
-</style>
-</head>
-<body>
+    const pflichtRows=ps.map(p=>{
+      const kurs=pflichtkurse.find(k=>k.id===p.kurs_id)
+      if(!kurs)return''
+      return`<tr>
+        <td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:11px;font-weight:600;color:#111">
+          ${kurs.titel}${kurs.untertitel?`<div style="font-size:10px;color:#666;font-weight:400;font-style:italic;margin-top:2px">"${kurs.untertitel}"</div>`:''}
+        </td>
+        <td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:11px;font-weight:600">${p.einheiten_besucht}</td>
+        <td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:11px;font-weight:700;color:#111">${p.dfp_erhalten}</td>
+      </tr>`}).join('')
 
-<!-- HEADER -->
+    return`<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8">
+<title>Teilnahmebestätigung — ${t.nachname} ${t.vorname}</title>
+<style>@page{size:A4;margin:15mm 20mm 25mm 20mm}*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#111;line-height:1.5}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style>
+</head><body>
 <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10mm;padding-bottom:6mm;border-bottom:2px solid #111">
-  <div>
-    <div style="font-size:10px;font-weight:700;letter-spacing:0.05em;color:#555">Prof. h.c. Univ.-Doz. Dr. Günther Neumayr</div>
-    <div style="font-size:10px;color:#777">Österreichische Gesellschaft für Sportmedizin und Prävention</div>
-  </div>
+  <div><div style="font-size:10px;font-weight:700;color:#555">Prof. h.c. Univ.-Doz. Dr. Günther Neumayr</div>
+  <div style="font-size:10px;color:#777">Österreichische Gesellschaft für Sportmedizin und Prävention</div></div>
   <img src="/logo.svg" style="height:14mm;width:auto" onerror="this.style.display='none'"/>
 </div>
-
-<!-- TITLE -->
 <div style="text-align:center;margin-bottom:8mm">
   <div style="font-size:13px;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;margin-bottom:6mm">T E I L N A H M E B E S T Ä T I G U N G</div>
 </div>
-
-<!-- NAME -->
 <div style="text-align:center;margin-bottom:6mm">
   <div style="font-size:16px;font-weight:700">${t.vorname} ${t.nachname}</div>
   <div style="font-size:11px;color:#555;margin-top:3px">ÖÄK-Nr.: ${t.oeak_nr}</div>
 </div>
-
-<!-- TEXT -->
 <div style="text-align:center;font-size:12px;margin-bottom:8mm;line-height:2">
   hat im Rahmen des<br>
   <strong style="font-size:13px">${k.name}</strong><br>
   ${ort}, ${datum}<br>
   an folgenden Veranstaltungen teilgenommen:
 </div>
-
-<!-- KURSE TABELLE -->
 <table style="width:100%;border-collapse:collapse;margin-bottom:8mm">
-  <thead>
-    <tr style="background:#111;color:#fff">
-      <th style="padding:10px 16px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase">Kurs / Veranstaltung</th>
-      <th style="padding:10px 16px;text-align:center;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;width:100px">Stunden</th>
-      <th style="padding:10px 16px;text-align:center;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;width:100px">DFP-Punkte</th>
-    </tr>
-  </thead>
+  <thead><tr style="background:#111;color:#fff">
+    <th style="padding:10px 16px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase">Kurs / Veranstaltung</th>
+    <th style="padding:10px 16px;text-align:center;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;width:100px">Stunden</th>
+    <th style="padding:10px 16px;text-align:center;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;width:100px">DFP-Punkte</th>
+  </tr></thead>
   <tbody>
-    ${kursRows}
+    ${buchRows}${pflichtRows}
     <tr style="background:#f5f5f5">
       <td style="padding:12px 16px;font-weight:700;font-size:12px">Gesamt</td>
       <td style="padding:12px 16px;text-align:center;font-weight:700;font-size:13px">${totalStunden}</td>
@@ -158,8 +167,6 @@ export default function AnwesenheitPage(){
     </tr>
   </tbody>
 </table>
-
-<!-- UNTERSCHRIFT -->
 <div style="display:flex;justify-content:center;margin-top:12mm;margin-bottom:10mm">
   <div style="text-align:center">
     <div style="border-top:1px solid #333;width:70mm;padding-top:3mm">
@@ -168,12 +175,10 @@ export default function AnwesenheitPage(){
     </div>
   </div>
 </div>
-
-<!-- ÖÄK BOX (fixed bottom) -->
 <div style="position:fixed;bottom:15mm;left:20mm;right:20mm">
   <div style="display:grid;grid-template-columns:auto 1fr;gap:12px;border:1.5px solid #333;padding:10px 14px;align-items:center">
     <div style="text-align:center">
-      <div style="font-size:8px;font-weight:900;letter-spacing:0.05em;border:2px solid #111;padding:3px 6px;color:#111">ÖÄK DIPLOM</div>
+      <div style="font-size:8px;font-weight:900;letter-spacing:0.05em;border:2px solid #111;padding:3px 6px">ÖÄK DIPLOM</div>
       <div style="font-size:7px;font-weight:700;letter-spacing:0.08em;margin-top:2px">APPROBIERT</div>
     </div>
     <div style="font-size:10px;line-height:1.8">
@@ -183,31 +188,20 @@ export default function AnwesenheitPage(){
       ${dfpId?`<div style="display:flex;justify-content:space-between"><span style="font-weight:700">DFP – ID</span><span style="font-weight:700">${dfpId}</span></div>`:''}
     </div>
   </div>
-  <!-- FOOTER -->
   <div style="display:grid;grid-template-columns:1fr 1fr;margin-top:6px;font-size:8px;color:#555">
-    <div>
-      <div>Michaelsgasse 20, 9900 Lienz, Österreich</div>
-      <div>UID: ATU 61957546</div>
-    </div>
-    <div style="text-align:right">
-      <div>Tel.: 04852 61952-52 · E-Mail: info@sportmedizin-arlberg.at</div>
-      <div>Website: www.sportmedizin-arlberg.at</div>
-    </div>
+    <div><div>Michaelsgasse 20, 9900 Lienz, Österreich</div><div>UID: ATU 61957546</div></div>
+    <div style="text-align:right"><div>Tel.: 04852 61952-52 · E-Mail: info@sportmedizin-arlberg.at</div><div>Website: www.sportmedizin-arlberg.at</div></div>
   </div>
 </div>
-
-</body>
-</html>`
+</body></html>`
   }
 
   async function sendBestaetigung(t:Teilnehmer,tnId:number){
     if(!k)return
     setSending(tnId)
     const html=buildBestaetigung(t,tnId)
-    await fetch('/api/send-bestaetigung',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email:t.email,vorname:t.vorname,nachname:t.nachname,html,kongress_name:k.name,kongress_jahr:k.jahr})
-    })
+    await fetch('/api/send-bestaetigung',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email:t.email,vorname:t.vorname,nachname:t.nachname,html,kongress_name:k.name,kongress_jahr:k.jahr})})
     setSending(null)
   }
 
@@ -225,7 +219,7 @@ export default function AnwesenheitPage(){
             {filtered.map((t,i)=>{
               const isOpen=expanded===t.id
               const bs=buchungen[t.id]??[]
-              const total=isOpen?calcDfpTotal(t.id):0
+              const pa=pflichtAnw[t.id]??[]
               return(
                 <div key={t.id} className={i>0?'border-t border-gray-100':''}>
                   <div className={`flex items-center gap-4 px-4 py-3.5 cursor-pointer transition-all ${isOpen?'bg-[#FFF9E6]':'hover:bg-gray-50'}`} onClick={()=>toggleExpand(t)}>
@@ -234,47 +228,83 @@ export default function AnwesenheitPage(){
                       <span className="font-semibold text-sm">{t.nachname} {t.vorname}</span>
                       <span className="text-xs text-gray-400 ml-3">ÖÄK: {t.oeak_nr}</span>
                     </div>
-                    {isOpen&&<span className="text-sm font-bold text-amber-700">{total} DFP gesamt</span>}
+                    {isOpen&&<span className="text-sm font-bold text-amber-700">{calcDfpTotal(t.id)} DFP / {calcStundenTotal(t.id)} Std.</span>}
                   </div>
-
                   {isOpen&&(
                     <div className="bg-[#FFFDF5] border-t border-[#FFE082]/50 px-6 py-4">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">Besuchte Kurse & Stunden</p>
+
+                      {/* GEBUCHTE KURSE */}
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">Gebuchte Kurse</p>
                       <div className="space-y-2 mb-5">
                         {bs.length===0&&<p className="text-sm text-gray-400">Keine Buchungen</p>}
-                        {bs.map(b=>{
-                          const maxEinh=b.kurse.einheiten_gesamt
-                          const dfpPro=b.kurse.dfp_punkte_gesamt&&maxEinh?(b.kurse.dfp_punkte_gesamt/maxEinh):0
-                          const isPflicht=kurse.find(k=>k.id===b.kurs_id)?.ist_pflichtprogramm??false
-                          return(
-                            <div key={b.id} className={`bg-white border rounded-xl p-3 grid grid-cols-4 gap-3 items-center ${isPflicht?'border-blue-100':'border-gray-200'}`}>
-                              <div className="col-span-2">
-                                <p className="text-sm font-semibold">{b.kurse.titel}
-                                  {isPflicht&&<span className="ml-2 text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold">PFLICHT</span>}
-                                </p>
-                                {b.kurse.untertitel&&<p className="text-xs text-gray-400 italic">{b.kurse.untertitel}</p>}
-                                <p className="text-[10px] text-gray-400">{b.kurse.uhrzeit??b.kurse.wochentag_datum}</p>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <input type="number" min={0} max={maxEinh} value={b.einheiten_besucht??''} placeholder="0"
-                                  onChange={e=>updateEinheiten(t.id,b.id,Math.min(parseInt(e.target.value)||0,maxEinh),b.kurse)}
-                                  className="w-14 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:border-[#FFBF00]"/>
-                                <span className="text-xs text-gray-400">/ {maxEinh} Std.</span>
-                              </div>
-                              <div className="text-right">
-                                <span className="text-sm font-bold text-amber-700">{b.dfp_erhalten??0} DFP</span>
-                                {b.kurse.dfp_punkte_gesamt&&<p className="text-[10px] text-gray-400">max. {b.kurse.dfp_punkte_gesamt}</p>}
-                              </div>
+                        {bs.map(b=>(
+                          <div key={b.id} className="bg-white border border-gray-200 rounded-xl p-3 grid grid-cols-4 gap-3 items-center">
+                            <div className="col-span-2">
+                              <p className="text-sm font-semibold">{b.kurse.titel}</p>
+                              {b.kurse.untertitel&&<p className="text-xs text-gray-400 italic">{b.kurse.untertitel}</p>}
+                              <p className="text-[10px] text-gray-400">{b.kurse.uhrzeit??b.kurse.wochentag_datum}</p>
                             </div>
-                          )
-                        })}
+                            <div className="flex items-center gap-2">
+                              <input type="number" min={0} max={b.kurse.einheiten_gesamt} value={b.einheiten_besucht??''}
+                                placeholder="0" onChange={e=>updateEinheiten(t.id,b.id,parseInt(e.target.value)||0,b.kurse)}
+                                className="w-14 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:border-[#FFBF00]"/>
+                              <span className="text-xs text-gray-400">/ {b.kurse.einheiten_gesamt} Std.</span>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-sm font-bold text-amber-700">{b.dfp_erhalten??0} DFP</span>
+                              {b.kurse.dfp_punkte_gesamt&&<p className="text-[10px] text-gray-400">max. {b.kurse.dfp_punkte_gesamt}</p>}
+                            </div>
+                          </div>
+                        ))}
                       </div>
 
+                      {/* PFLICHTPROGRAMM */}
+                      {pflichtkurse.length>0&&(
+                        <>
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">Pflichtprogramm (optional — nur wenn tatsächlich teilgenommen)</p>
+                          <div className="space-y-2 mb-5">
+                            {pflichtkurse.map(pk=>{
+                              const p=pa.find(x=>x.kurs_id===pk.id)
+                              const val=p?.einheiten_besucht??0
+                              return(
+                                <div key={pk.id} className="bg-white border border-blue-100 rounded-xl p-3 grid grid-cols-4 gap-3 items-center">
+                                  <div className="col-span-2">
+                                    <p className="text-sm font-semibold">{pk.titel}
+                                      <span className="ml-2 text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold">PFLICHT</span>
+                                    </p>
+                                    {pk.untertitel&&<p className="text-xs text-gray-400 italic">{pk.untertitel}</p>}
+                                    <p className="text-[10px] text-gray-400">{pk.uhrzeit??pk.wochentag_datum}</p>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    {pk.einheiten_gesamt===1
+                                      ?<label className="flex items-center gap-2 text-sm cursor-pointer">
+                                        <input type="checkbox" checked={val===1} onChange={e=>updatePflicht(t.id,pk.id,e.target.checked?1:0,pk)} className="accent-amber-500"/>
+                                        Anwesend
+                                      </label>
+                                      :<><input type="number" min={0} max={pk.einheiten_gesamt} value={val||''}
+                                        placeholder="0" onChange={e=>updatePflicht(t.id,pk.id,parseInt(e.target.value)||0,pk)}
+                                        className="w-14 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:border-[#FFBF00]"/>
+                                        <span className="text-xs text-gray-400">/ {pk.einheiten_gesamt} Std.</span>
+                                      </>
+                                    }
+                                  </div>
+                                  <div className="text-right">
+                                    {p&&p.dfp_erhalten>0&&<span className="text-sm font-bold text-amber-700">{p.dfp_erhalten} DFP</span>}
+                                    {pk.dfp_punkte_gesamt&&<p className="text-[10px] text-gray-400">max. {pk.dfp_punkte_gesamt}</p>}
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </>
+                      )}
+
+                      {/* GESAMT + AKTIONEN */}
                       <div className="flex items-center justify-between pt-3 border-t border-gray-200">
                         <div>
                           <span className="text-sm font-bold">Gesamt: </span>
                           <span className="text-lg font-extrabold text-amber-700">{calcDfpTotal(t.id)} DFP</span>
-                          <span className="text-xs text-gray-400 ml-2">/ {bs.reduce((s,b)=>s+(b.einheiten_besucht??0),0)} Stunden</span>
+                          <span className="text-xs text-gray-400 ml-2">/ {calcStundenTotal(t.id)} Stunden</span>
                         </div>
                         <div className="flex gap-2">
                           <Btn variant="outline" size="sm" disabled={saving===t.id} onClick={()=>saveAnwesenheit(t.id)}>
@@ -297,7 +327,6 @@ export default function AnwesenheitPage(){
         )}
       </div>
 
-      {/* VORSCHAU */}
       {preview&&(
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl">

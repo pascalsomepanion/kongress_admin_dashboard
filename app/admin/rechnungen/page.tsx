@@ -61,7 +61,7 @@ export default function RechnungenPage(){
       allBezahlt:bs.every(b=>b.zahlungsstatus==='bezahlt'||b.zahlungsstatus==='storniert'),
       hasOffen:bs.some(b=>b.zahlungsstatus==='ausstehend'),
       versendetAm:bs.find(b=>b.rechnung_versendet_am)?.rechnung_versendet_am??null,
-      isStorno:(key.includes('S')||key.includes('K'))&&key!=='__ohne__',
+      isStorno:key!=='__ohne__'&&(/S\d*$|K\d*$/.test(key)),
     }))
   }
 

@@ -178,14 +178,18 @@ ${erstattung>0?`<p style="font-size:10px;color:#555;margin-bottom:8mm">Der Betra
 
   async function loadPdf(g:TGroup,nr:string){
     if(!k)return
-    const tn=g.tn
-    const{data}=await supabase.storage.from('rechnungen').download(`${k.jahr}/${tn.nachname}_${tn.vorname}_${nr}.html`)
-    if(data){const text=await data.text();setPreviewHtml(text);setPreviewNr(nr);setPreviewMode('existing')}
-    else{
-      const buchungen=g.buchungen.filter(b=>b.rechnungsnummer===nr)
-      const bezahlt=buchungen.filter(b=>b.zahlungsstatus!=='storniert').every(b=>b.zahlungsstatus==='bezahlt')
-      setPreviewHtml(buildHtml(g,nr,buchungen,'Damen und Herren',bezahlt));setPreviewNr(nr);setPreviewMode('existing')
+    // Always regenerate from DB to ensure correct buchungen are shown
+    const isStorno=/(?:S|K)\d*$/.test(nr)
+    if(isStorno){
+      // For storno invoices, try to load from storage
+      const tn=g.tn
+      const{data}=await supabase.storage.from('rechnungen').download(`${k.jahr}/${tn.nachname}_${tn.vorname}_${nr}.html`)
+      if(data){const text=await data.text();setPreviewHtml(text);setPreviewNr(nr);setPreviewMode('existing');return}
     }
+    // For regular invoices, always regenerate from DB with correct filter
+    const buchungen=g.buchungen.filter(b=>b.rechnungsnummer===nr)
+    const bezahlt=buchungen.filter(b=>b.zahlungsstatus!=='storniert').every(b=>b.zahlungsstatus==='bezahlt')
+    setPreviewHtml(buildHtml(g,nr,buchungen,'Damen und Herren',bezahlt));setPreviewNr(nr);setPreviewMode('existing')
   }
 
   return(

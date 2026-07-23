@@ -128,15 +128,20 @@ ${erstattung>0?`<p style="font-size:10px;color:#555;margin-bottom:8mm">EUR ${ers
   }
 
   async function saveRechnung(){
-    if(!creating||!k||!previewNr||!previewHtml)return
+    if(!creating||!k||!previewNr)return
     setSaving(true)
-    const tn=creating.group.tn
-    await supabase.storage.from('rechnungen').upload(`${k.jahr}/${tn.nachname}_${tn.vorname}_${previewNr}.html`,new Blob([previewHtml],{type:'text/html'}),{upsert:true})
-    const ids=creating.buchungen.map(b=>b.id)
-    await supabase.from('buchungen').update({rechnungsnummer:previewNr}).in('id',ids)
-    const brutto=creating.buchungen.reduce((s,b)=>s+b.gebuchter_preis,0)
-    await supabase.from('rechnungen').insert({kongress_id:k.id,teilnehmer_id:creating.group.tnId,rechnungsnummer:previewNr,typ:'teilnehmer',anrede,gesamtbetrag_brutto:brutto,netto:brutto/1.2,mwst_betrag:brutto-(brutto/1.2),mwst_prozent:20,bezahlt:true,erstellt_am:new Date().toISOString()})
-    setPreviewHtml(null);setCreating(null)
+    const c=creating
+    const nr=previewNr
+    const anredeText=anrede==='Damen und Herren'?'Damen und Herren':`${anrede} ${c.group.tn.nachname}`
+    const html=buildHtml(c.group,nr,c.buchungen,anredeText,true)
+    const tn=c.group.tn
+    setPreviewHtml(null);setCreating(null);setPreviewNr('')
+    await supabase.storage.from('rechnungen').upload(`${k.jahr}/${tn.nachname}_${tn.vorname}_${nr}.html`,new Blob([html],{type:'text/html'}),{upsert:true})
+    for(const b of c.buchungen){
+      await supabase.from('buchungen').update({rechnungsnummer:nr}).eq('id',b.id)
+    }
+    const brutto=c.buchungen.reduce((s,b)=>s+b.gebuchter_preis,0)
+    await supabase.from('rechnungen').insert({kongress_id:k.id,teilnehmer_id:c.group.tnId,rechnungsnummer:nr,typ:'teilnehmer',anrede,gesamtbetrag_brutto:brutto,netto:brutto/1.2,mwst_betrag:brutto-(brutto/1.2),mwst_prozent:20,bezahlt:true,erstellt_am:new Date().toISOString()})
     await load(k.id);setSaving(false)
   }
 

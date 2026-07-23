@@ -222,7 +222,7 @@ ${erstattung>0?`<div style="display:flex;justify-content:flex-end;margin-bottom:
                         const aktivBuchungen=h.buchungen.filter(b=>b.zahlungsstatus!=='storniert')
                         const bezahlt=aktivBuchungen.every(b=>b.zahlungsstatus==='bezahlt')&&aktivBuchungen.length>0
                         const versendet=h.versendetAm
-                        const isStornoRechnung=h.rNr&&(h.rNr.includes('S')||h.rNr.includes('K'))
+                        const isStornoRechnung=h.rNr&&(/(?:S|K)\d*$/.test(h.rNr))
                         return(
                           <div key={hi} className={`border rounded-xl overflow-hidden ${isStornoRechnung?'border-red-100':'border-gray-200'}`}>
                             <div className={`px-4 py-3 flex items-center justify-between ${isStornoRechnung?'bg-red-50':h.rNr?'bg-gray-50':'bg-amber-50'}`}>

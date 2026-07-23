@@ -1,7 +1,7 @@
 'use client'
 import{useEffect,useState}from'react'
 import{supabase,getAktuellerKongress,getAlleRechnungsnummern,nextRechnungsnr,type Kongress}from'@/lib/db'
-import{buildRechnungHTML,type MwstTyp}from'@/lib/pdf'
+import{buildRechnungHTML}from'@/lib/pdf'
 import{Btn,Badge,Loader,Modal,PageHeader}from'@/lib/ui'
 
 type Buchung={id:number;kurs_id:number;gebuchter_preis:number;zahlungsstatus:string;rechnungsnummer:string|null;rechnung_versendet_am:string|null;gebucht_am:string;teilnehmer_id:number;kurse:{titel:string}}

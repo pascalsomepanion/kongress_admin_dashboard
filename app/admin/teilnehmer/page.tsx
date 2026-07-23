@@ -304,6 +304,7 @@ export default function TeilnehmerPage(){
             {(()=>{
               const aktuell=tnBuchungen[kursEdit.id]??[]
               const verfuegbar=kurse.filter(kurs=>{
+                if(kurs.ist_pflichtprogramm)return false
                 const aktivGebucht=aktuell.find(b=>b.kurs_id===kurs.id&&b.zahlungsstatus!=='storniert')
                 const storniertOhneRechnung=aktuell.find(b=>b.kurs_id===kurs.id&&b.zahlungsstatus==='storniert'&&!b.rechnungsnummer)
                 const hatKonflikt=checkKonflikt(kurs,aktuell)!==''

@@ -93,6 +93,7 @@ ${erstattung>0?`<p style="font-size:10px;color:#555;margin-bottom:8mm">EUR ${ers
   async function saveRechnung(){
     if(!creating||!k||!previewNr||!previewHtml)return
     setSaving(true)
+    console.log('saveRechnung: buchungen count=',creating.buchungen.length, 'ids=',creating.buchungen.map(b=>b.id), 'nr=',previewNr)
     const tn=creating.group.tn
     await supabase.storage.from('rechnungen').upload(`${k.jahr}/${tn.nachname}_${tn.vorname}_${previewNr}.html`,new Blob([previewHtml],{type:'text/html'}),{upsert:true})
     for(const b of creating.buchungen){await supabase.from('buchungen').update({rechnungsnummer:previewNr}).eq('id',b.id)}

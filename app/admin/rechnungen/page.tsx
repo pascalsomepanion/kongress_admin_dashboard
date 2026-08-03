@@ -19,6 +19,7 @@ export default function RechnungenPage(){
   const[creating,setCreating]=useState<{group:TGroup;buchungen:Buchung[]}|null>(null)
   const[anrede,setAnrede]=useState<'Damen und Herren'|'Frau'|'Herr'>('Damen und Herren')
   const[saving,setSaving]=useState(false)
+  const[stornoRechnungen,setStornoRechnungen]=useState<Record<number,{rechnungsnummer:string;erstellt_am:string}[]>>({})
   const[sending,setSending]=useState<string|null>(null)
   const[stornoGroup,setStornoGroup]=useState<TGroup|null>(null)
   const[stornoBuchungen,setStornoBuchungen]=useState<Buchung[]>([])
@@ -35,6 +36,14 @@ export default function RechnungenPage(){
       map[tid].buchungen.push({id:x.id,kurs_id:x.kurs_id,gebuchter_preis:x.gebuchter_preis,zahlungsstatus:x.zahlungsstatus,rechnungsnummer:x.rechnungsnummer,rechnung_versendet_am:x.rechnung_versendet_am,gebucht_am:x.gebucht_am,teilnehmer_id:tid,kurse:x.kurse})
     })
     setGroups(Object.values(map).sort((a,b)=>a.tn.nachname.localeCompare(b.tn.nachname)))
+    // Load storno rechnungen
+    const{data:sr}=await supabase.from('rechnungen').select('teilnehmer_id,rechnungsnummer,erstellt_am').eq('kongress_id',kid).eq('typ','storno')
+    const srMap:Record<number,{rechnungsnummer:string;erstellt_am:string}[]>={}
+    ;(sr??[]).forEach((x:any)=>{
+      if(!srMap[x.teilnehmer_id])srMap[x.teilnehmer_id]=[]
+      srMap[x.teilnehmer_id].push({rechnungsnummer:x.rechnungsnummer,erstellt_am:x.erstellt_am})
+    })
+    setStornoRechnungen(srMap)
   }
 
   // Rechnungshistorie: gruppiert nach Rechnungsnummer + Stornos
@@ -194,6 +203,7 @@ export default function RechnungenPage(){
                         const aktivBuchungen=h.buchungen.filter(b=>b.zahlungsstatus!=='storniert')
                         const stornierteBuchungen=h.buchungen.filter(b=>b.zahlungsstatus==='storniert')
                         const bezahlt=aktivBuchungen.every(b=>b.zahlungsstatus==='bezahlt')&&aktivBuchungen.length>0
+                        const isStornoRechnung=h.rNr?.includes('-Storno')??false
                         return(
                           <div key={hi} className="border border-gray-200 rounded-xl overflow-hidden">
                             {/* Gruppe Header */}
@@ -209,9 +219,9 @@ export default function RechnungenPage(){
                               </div>
                               <div className="flex gap-1.5">
                                 {h.rNr&&<Btn size="sm" variant="outline" onClick={()=>loadPdf(g,h.rNr!)}>👁 Anzeigen</Btn>}
-                                {h.rNr&&bezahlt&&<Btn size="sm" variant="outline" disabled={sending===h.rNr} onClick={async()=>{const html=buildHtml(g,h.rNr!,h.buchungen,'Damen und Herren',bezahlt);await sendEmail(g,h.rNr!,html)}}>{sending===h.rNr?'Sendet…':'📧 Senden'}</Btn>}
-                                {h.rNr&&!bezahlt&&<span className="text-[10px] text-gray-400 italic">Senden erst nach Zahlungseingang</span>}
-                                {h.rNr&&bezahlt&&(
+                                {h.rNr&&(bezahlt||isStornoRechnung)&&<Btn size="sm" variant="outline" disabled={sending===h.rNr} onClick={async()=>{const html=buildHtml(g,h.rNr!,h.buchungen,'Damen und Herren',bezahlt);await sendEmail(g,h.rNr!,html)}}>{sending===h.rNr?'Sendet…':'📧 Senden'}</Btn>}
+                                {h.rNr&&!bezahlt&&!isStornoRechnung&&<span className="text-[10px] text-gray-400 italic">Senden erst nach Zahlungseingang</span>}
+                                {h.rNr&&bezahlt&&!isStornoRechnung&&(
                                   <Btn size="sm" variant="danger" onClick={()=>stornoRechnung(g,h.rNr!)}>
                                     🔴 Stornieren
                                   </Btn>
@@ -254,7 +264,22 @@ export default function RechnungenPage(){
                             )}
                           </div>
                         )
-                      })}
+                      {/* STORNO RECHNUNGEN */}
+                      {(stornoRechnungen[g.tnId]??[]).map(sr=>(
+                        <div key={sr.rechnungsnummer} className="border border-red-200 rounded-xl overflow-hidden">
+                          <div className="bg-red-50 px-4 py-3 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-sm font-bold text-red-700">🔴 {sr.rechnungsnummer}</span>
+                              <Badge label="Stornorechnung" variant="red"/>
+                              <span className="text-[10px] text-gray-400">{new Date(sr.erstellt_am).toLocaleDateString('de-AT')}</span>
+                            </div>
+                            <Btn size="sm" variant="outline" onClick={async()=>{
+                              const{data}=await supabase.storage.from('rechnungen').download(`${k!.jahr}/${g.tn.nachname}_${g.tn.vorname}_${sr.rechnungsnummer}.html`)
+                              if(data){setPreviewHtml(await data.text());setPreviewNr(sr.rechnungsnummer);setPreviewMode('existing')}
+                            }}>👁 Anzeigen</Btn>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

@@ -152,7 +152,7 @@ ${r.bezahlt ? `<div style="font-size:13px;font-weight:bold;margin:5mm 0">Ihre Za
 <div style="font-size:10px;line-height:1.9;margin-top:8mm">
   <p>Mit sportlichen Grüßen</p>
   <br>
-  <img src="/unterschrift.png" style="height:15mm;width:auto;display:block;margin-bottom:2mm"/>
+  <img src="/unterschrift.png" style="height:15mm;width:auto;display:block;margin:0 auto 2mm auto"/>
   <p style="font-weight:bold;font-style:italic">${A.name}</p>
   <p>Kongresspräsident</p>
 </div>
@@ -162,8 +162,7 @@ ${r.bezahlt ? `<div style="font-size:13px;font-weight:bold;margin:5mm 0">Ihre Za
   <div>
     <div style="font-weight:bold;margin-bottom:3px">${A.name}</div>
     <div>${A.strasse}</div>
-    <div>${A.plz_ort} · ${A.land}</div>
-    <div>UID: ${A.uid}</div>
+    <div>${A.plz_ort}</div>
   </div>
   <div>
     <div style="font-weight:bold;margin-bottom:3px">Bankverbindung</div>

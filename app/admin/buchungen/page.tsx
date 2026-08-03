@@ -170,8 +170,8 @@ export default function ZahlungenPage(){
                                   {saving===(rg.rNr??`k_${rg.buchungen[0].id}`)?'Speichert…':`✓ Zahlung erhalten${rg.rNr?' — '+rg.rNr:''}`}
                                 </Btn>
                               )}
-                              {rg.allBezahlt&&rg.buchungen.some(b=>b.zahlungsstatus==='bezahlt')&&(
-                                {!rg.rNr&&<Btn size="sm" variant="outline" onClick={()=>zuruecksetzen(rg.buchungen)}>Zurücksetzen</Btn>}
+                              {rg.allBezahlt&&rg.buchungen.some(b=>b.zahlungsstatus==='bezahlt')&&!rg.rNr&&(
+                                <Btn size="sm" variant="outline" onClick={()=>zuruecksetzen(rg.buchungen)}>Zurücksetzen</Btn>
                               )}
                             </div>
                           </div>

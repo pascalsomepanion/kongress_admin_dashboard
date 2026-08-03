@@ -134,7 +134,7 @@ export default function AnwesenheitPage(){
 <title>Teilnahmebestätigung — ${t.nachname} ${t.vorname}</title>
 <style>@page{size:A4;margin:15mm 20mm 25mm 20mm}*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#111;line-height:1.5}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style>
 </head><body>
-<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10mm;padding-bottom:6mm;border-bottom:2px solid #111">
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10mm;padding-bottom:6mm;border-bottom:2px solid #FFBF00">
   <div><div style="font-size:10px;font-weight:700;color:#555">Prof. h.c. Univ.-Doz. Dr. Günther Neumayr</div>
   <div style="font-size:10px;color:#777">Österreichische Gesellschaft für Sportmedizin und Prävention</div></div>
   <img src="/logo.svg" style="height:14mm;width:auto" onerror="this.style.display='none'"/>
@@ -153,14 +153,14 @@ export default function AnwesenheitPage(){
   an folgenden Veranstaltungen teilgenommen:
 </div>
 <table style="width:100%;border-collapse:collapse;margin-bottom:8mm">
-  <thead><tr style="background:#111;color:#fff">
+  <thead><tr style="background:#FFBF00;color:#111">
     <th style="padding:10px 16px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase">Kurs / Veranstaltung</th>
     <th style="padding:10px 16px;text-align:center;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;width:100px">Stunden</th>
     <th style="padding:10px 16px;text-align:center;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;width:100px">DFP-Punkte</th>
   </tr></thead>
   <tbody>
     ${buchRows}${pflichtRows}
-    <tr style="background:#f5f5f5">
+    <tr style="background:#FFF9E6">
       <td style="padding:12px 16px;font-weight:700;font-size:12px">Gesamt</td>
       <td style="padding:12px 16px;text-align:center;font-weight:700;font-size:13px">${totalStunden}</td>
       <td style="padding:12px 16px;text-align:center;font-weight:700;font-size:15px">${total}</td>
@@ -242,13 +242,21 @@ export default function AnwesenheitPage(){
                             <div className="col-span-2">
                               <p className="text-sm font-semibold">{b.kurse.titel}</p>
                               {b.kurse.untertitel&&<p className="text-xs text-gray-400 italic">{b.kurse.untertitel}</p>}
-                              <p className="text-[10px] text-gray-400">{b.kurse.uhrzeit??b.kurse.wochentag_datum}</p>
+                              <p className="text-[10px] text-gray-400">{b.kurse.uhrzeit?`${b.kurse.uhrzeit} · `:''}{b.kurse.wochentag_datum}</p>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <input type="number" min={0} max={b.kurse.einheiten_gesamt} value={b.einheiten_besucht??''}
-                                placeholder="0" onChange={e=>updateEinheiten(t.id,b.id,parseInt(e.target.value)||0,b.kurse)}
-                                className="w-14 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:border-[#FFBF00]"/>
-                              <span className="text-xs text-gray-400">/ {b.kurse.einheiten_gesamt} Std.</span>
+                            <div className="flex flex-col gap-1.5">
+                              {b.kurse.einheiten_gesamt>1&&(
+                                <label className="flex items-center gap-1.5 text-[10px] cursor-pointer text-amber-600 font-semibold">
+                                  <input type="checkbox" checked={(b.einheiten_besucht??0)===b.kurse.einheiten_gesamt} onChange={e=>updateEinheiten(t.id,b.id,e.target.checked?b.kurse.einheiten_gesamt:0,b.kurse)} className="accent-amber-500"/>
+                                  Vollständig
+                                </label>
+                              )}
+                              <div className="flex items-center gap-2">
+                                <input type="number" min={0} max={b.kurse.einheiten_gesamt} value={b.einheiten_besucht??''}
+                                  placeholder="0" onChange={e=>updateEinheiten(t.id,b.id,parseInt(e.target.value)||0,b.kurse)}
+                                  className="w-14 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:border-[#FFBF00]"/>
+                                <span className="text-xs text-gray-400">/ {b.kurse.einheiten_gesamt} Std.</span>
+                              </div>
                             </div>
                             <div className="text-right">
                               <span className="text-sm font-bold text-amber-700">{b.dfp_erhalten??0} DFP</span>
@@ -266,31 +274,35 @@ export default function AnwesenheitPage(){
                             {pflichtkurse.map(pk=>{
                               const p=pa.find(x=>x.kurs_id===pk.id)
                               const val=p?.einheiten_besucht??0
+                              const alleAnwesend=val===pk.einheiten_gesamt&&pk.einheiten_gesamt>0
                               return(
-                                <div key={pk.id} className="bg-white border border-blue-100 rounded-xl p-3 grid grid-cols-4 gap-3 items-center">
-                                  <div className="col-span-2">
-                                    <p className="text-sm font-semibold">{pk.titel}
-                                      <span className="ml-2 text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold">PFLICHT</span>
-                                    </p>
-                                    {pk.untertitel&&<p className="text-xs text-gray-400 italic">{pk.untertitel}</p>}
-                                    <p className="text-[10px] text-gray-400">{pk.uhrzeit??pk.wochentag_datum}</p>
+                                <div key={pk.id} className="bg-white border border-blue-100 rounded-xl p-3">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div>
+                                      <p className="text-sm font-semibold">{pk.titel}
+                                        <span className="ml-2 text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold">PFLICHT</span>
+                                      </p>
+                                      {pk.untertitel&&<p className="text-xs text-gray-400 italic">{pk.untertitel}</p>}
+                                      <p className="text-[10px] text-gray-400">{pk.uhrzeit?`${pk.uhrzeit} · `:''}{pk.wochentag_datum}</p>
+                                    </div>
+                                    <div className="text-right">
+                                      {p&&p.dfp_erhalten>0&&<span className="text-sm font-bold text-amber-700">{p.dfp_erhalten} DFP</span>}
+                                      {pk.dfp_punkte_gesamt&&<p className="text-[10px] text-gray-400">max. {pk.dfp_punkte_gesamt}</p>}
+                                    </div>
                                   </div>
-                                  <div className="flex items-center gap-2">
-                                    {pk.einheiten_gesamt===1
-                                      ?<label className="flex items-center gap-2 text-sm cursor-pointer">
-                                        <input type="checkbox" checked={val===1} onChange={e=>updatePflicht(t.id,pk.id,e.target.checked?1:0,pk)} className="accent-amber-500"/>
-                                        Anwesend
+                                  <div className="flex items-center gap-4">
+                                    {pk.einheiten_gesamt>1&&(
+                                      <label className="flex items-center gap-2 text-xs cursor-pointer text-blue-600 font-semibold">
+                                        <input type="checkbox" checked={alleAnwesend} onChange={e=>updatePflicht(t.id,pk.id,e.target.checked?pk.einheiten_gesamt:0,pk)} className="accent-blue-500"/>
+                                        Vollständig anwesend
                                       </label>
-                                      :<><input type="number" min={0} max={pk.einheiten_gesamt} value={val||''}
+                                    )}
+                                    <div className="flex items-center gap-2">
+                                      <input type="number" min={0} max={pk.einheiten_gesamt} value={val||''}
                                         placeholder="0" onChange={e=>updatePflicht(t.id,pk.id,parseInt(e.target.value)||0,pk)}
                                         className="w-14 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:border-[#FFBF00]"/>
-                                        <span className="text-xs text-gray-400">/ {pk.einheiten_gesamt} Std.</span>
-                                      </>
-                                    }
-                                  </div>
-                                  <div className="text-right">
-                                    {p&&p.dfp_erhalten>0&&<span className="text-sm font-bold text-amber-700">{p.dfp_erhalten} DFP</span>}
-                                    {pk.dfp_punkte_gesamt&&<p className="text-[10px] text-gray-400">max. {pk.dfp_punkte_gesamt}</p>}
+                                      <span className="text-xs text-gray-400">/ {pk.einheiten_gesamt} Std.</span>
+                                    </div>
                                   </div>
                                 </div>
                               )

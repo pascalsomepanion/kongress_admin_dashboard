@@ -160,7 +160,7 @@ ${anwList.length>0?`
 </div>
 <table style="width:100%;border-collapse:collapse;margin-bottom:8mm">
   <thead>
-    <tr style="background:#111;color:#fff">
+    <tr style="background:#FFBF00;color:#111">
       <th style="padding:10px 16px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase">Kurs / Veranstaltung</th>
       <th style="padding:10px 16px;text-align:center;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;width:100px">Stunden</th>
       <th style="padding:10px 16px;text-align:center;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;width:100px">DFP-Punkte</th>
@@ -180,7 +180,7 @@ ${anwList.length>0?`
 
 <div style="display:flex;justify-content:center;margin-bottom:10mm">
   <div style="text-align:center">
-    <div style="border-top:1px solid #333;width:70mm;padding-top:3mm">
+    <div>
       <img src="/unterschrift.png" style="height:15mm;width:auto;display:block;margin:0 auto 2mm auto" onerror="this.style.display='none'"/><div style="font-size:11px;font-weight:700;font-style:italic">Prof. h.c. Univ.-Doz. Dr. Günther Neumayr</div>
       <div style="font-size:10px;color:#555">Kongresspräsident</div>
     </div>

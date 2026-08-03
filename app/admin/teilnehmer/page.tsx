@@ -126,10 +126,7 @@ export default function TeilnehmerPage(){
     }
     // Storniert aber keine Stornorechnung? → nicht buchbar
     const storniert=aktuell.find(b=>b.kurs_id===kurs.id&&b.zahlungsstatus==='storniert')
-    if(storniert&&storniert.rechnungsnummer){
-      setKonfliktMsg(`Dieser Kurs wurde storniert. Bitte zuerst in Rechnungen die Stornorechnung erstellen, dann kann er wieder gebucht werden.`)
-      return
-    }
+
     const konflikt=checkKonflikt(kurs,aktuell)
     if(konflikt){setKonfliktMsg(konflikt);return}
     setKonfliktMsg('');setKursSaving(true)

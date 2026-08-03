@@ -202,7 +202,7 @@ export default function RechnungenPage(){
                                   ?<span className="font-mono text-sm font-bold text-gray-700">📄 {h.rNr}</span>
                                   :<span className="text-sm font-bold text-amber-700">⚡ Nachbuchung (keine Rechnung)</span>
                                 }
-                                {bezahlt&&<Badge label="Bezahlt" variant="green"/>}
+                                {bezahlt&&!isStornoRechnung&&<Badge label="Bezahlt" variant="green"/>}{isStornoRechnung&&h.rNr&&!h.rNr.includes('-Storno')&&<Badge label="Storniert" variant="red"/>}
                                 {h.hasOffen&&<Badge label="Ausstehend" variant="yellow"/>}
                                 <span className="text-xs text-gray-500">€ {aktivBuchungen.reduce((s,b)=>s+b.gebuchter_preis,0).toFixed(2)}</span>
                               </div>
@@ -256,17 +256,23 @@ export default function RechnungenPage(){
                       })}
                       {/* STORNO RECHNUNGEN */}
                       {(stornoRechnungen[g.tnId]??[]).map(sr=>(
-                        <div key={sr.rechnungsnummer} className="border border-red-200 rounded-xl overflow-hidden">
+                        <div key={sr.rechnungsnummer} className="border border-red-200 rounded-xl overflow-hidden ml-6 relative before:absolute before:left-[-16px] before:top-1/2 before:w-4 before:h-px before:bg-red-200">
                           <div className="bg-red-50 px-4 py-3 flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <span className="font-mono text-sm font-bold text-red-700">🔴 {sr.rechnungsnummer}</span>
                               <Badge label="Stornorechnung" variant="red"/>
                               <span className="text-[10px] text-gray-400">{new Date(sr.erstellt_am).toLocaleDateString('de-AT')}</span>
                             </div>
-                            <Btn size="sm" variant="outline" onClick={async()=>{
-                              const{data}=await supabase.storage.from('rechnungen').download(`${k!.jahr}/${g.tn.nachname}_${g.tn.vorname}_${sr.rechnungsnummer}.html`)
-                              if(data){setPreviewHtml(await data.text());setPreviewNr(sr.rechnungsnummer);setPreviewMode('existing')}
-                            }}>👁 Anzeigen</Btn>
+                            <div className="flex gap-2">
+                              <Btn size="sm" variant="outline" onClick={async()=>{
+                                const{data}=await supabase.storage.from('rechnungen').download(`${k!.jahr}/${g.tn.nachname}_${g.tn.vorname}_${sr.rechnungsnummer}.html`)
+                                if(data){setPreviewHtml(await data.text());setPreviewNr(sr.rechnungsnummer);setPreviewMode('existing')}
+                              }}>👁 Anzeigen</Btn>
+                              <Btn size="sm" variant="outline" disabled={sending===sr.rechnungsnummer} onClick={async()=>{
+                                const{data}=await supabase.storage.from('rechnungen').download(`${k!.jahr}/${g.tn.nachname}_${g.tn.vorname}_${sr.rechnungsnummer}.html`)
+                                if(data){const html=await data.text();await sendEmail(g,sr.rechnungsnummer,html)}
+                              }}>{sending===sr.rechnungsnummer?'Sendet…':'📧 Senden'}</Btn>
+                            </div>
                           </div>
                         </div>
                       ))}

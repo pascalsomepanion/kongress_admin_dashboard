@@ -276,11 +276,11 @@ export default function AnwesenheitPage(){
                               const val=p?.einheiten_besucht??0
                               const alleAnwesend=val===pk.einheiten_gesamt&&pk.einheiten_gesamt>0
                               return(
-                                <div key={pk.id} className="bg-white border border-blue-100 rounded-xl p-3">
+                                <div key={pk.id} className="bg-white border border-gray-200 rounded-xl p-3">
                                   <div className="flex items-center justify-between mb-2">
                                     <div>
                                       <p className="text-sm font-semibold">{pk.titel}
-                                        <span className="ml-2 text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold">PFLICHT</span>
+                                        
                                       </p>
                                       {pk.untertitel&&<p className="text-xs text-gray-400 italic">{pk.untertitel}</p>}
                                       <p className="text-[10px] text-gray-400">{pk.uhrzeit?`${pk.uhrzeit} · `:''}{pk.wochentag_datum}</p>
@@ -291,18 +291,18 @@ export default function AnwesenheitPage(){
                                     </div>
                                   </div>
                                   <div className="flex items-center gap-4">
+                                    <label className="flex items-center gap-2 text-xs cursor-pointer text-gray-600 font-semibold">
+                                      <input type="checkbox" checked={alleAnwesend} onChange={e=>updatePflicht(t.id,pk.id,e.target.checked?pk.einheiten_gesamt:0,pk)} className="accent-amber-500"/>
+                                      Vollständig anwesend
+                                    </label>
                                     {pk.einheiten_gesamt>1&&(
-                                      <label className="flex items-center gap-2 text-xs cursor-pointer text-blue-600 font-semibold">
-                                        <input type="checkbox" checked={alleAnwesend} onChange={e=>updatePflicht(t.id,pk.id,e.target.checked?pk.einheiten_gesamt:0,pk)} className="accent-blue-500"/>
-                                        Vollständig anwesend
-                                      </label>
+                                      <div className="flex items-center gap-2">
+                                        <input type="number" min={0} max={pk.einheiten_gesamt} value={val||''}
+                                          placeholder="0" onChange={e=>updatePflicht(t.id,pk.id,parseInt(e.target.value)||0,pk)}
+                                          className="w-14 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:border-[#FFBF00]"/>
+                                        <span className="text-xs text-gray-400">/ {pk.einheiten_gesamt} Std.</span>
+                                      </div>
                                     )}
-                                    <div className="flex items-center gap-2">
-                                      <input type="number" min={0} max={pk.einheiten_gesamt} value={val||''}
-                                        placeholder="0" onChange={e=>updatePflicht(t.id,pk.id,parseInt(e.target.value)||0,pk)}
-                                        className="w-14 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:border-[#FFBF00]"/>
-                                      <span className="text-xs text-gray-400">/ {pk.einheiten_gesamt} Std.</span>
-                                    </div>
                                   </div>
                                 </div>
                               )

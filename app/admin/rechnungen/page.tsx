@@ -192,7 +192,7 @@ export default function RechnungenPage(){
                         const aktivBuchungen=h.buchungen.filter(b=>b.zahlungsstatus!=='storniert')
                         const stornierteBuchungen=h.buchungen.filter(b=>b.zahlungsstatus==='storniert')
                         const bezahlt=aktivBuchungen.every(b=>b.zahlungsstatus==='bezahlt')&&aktivBuchungen.length>0
-                        const isStornoRechnung=h.rNr?.includes('-Storno')??false
+                        const isStornoRechnung=(h.rNr?.includes('-Storno')??false)||h.buchungen.every(b=>b.zahlungsstatus==='storniert')
                         return(
                           <div key={hi} className="border border-gray-200 rounded-xl overflow-hidden">
                             {/* Gruppe Header */}

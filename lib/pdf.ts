@@ -151,7 +151,8 @@ ${r.bezahlt ? `<div style="font-size:13px;font-weight:bold;margin:5mm 0">Ihre Za
 <!-- GRUSS -->
 <div style="font-size:10px;line-height:1.9;margin-top:8mm">
   <p>Mit sportlichen Grüßen</p>
-  <br><br>
+  <br>
+  <img src="/unterschrift.png" style="height:15mm;width:auto;display:block;margin-bottom:2mm"/>
   <p style="font-weight:bold;font-style:italic">${A.name}</p>
   <p>Kongresspräsident</p>
 </div>

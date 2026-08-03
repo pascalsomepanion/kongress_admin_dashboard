@@ -171,7 +171,7 @@ export default function ZahlungenPage(){
                                 </Btn>
                               )}
                               {rg.allBezahlt&&rg.buchungen.some(b=>b.zahlungsstatus==='bezahlt')&&(
-                                <Btn size="sm" variant="outline" onClick={()=>zuruecksetzen(rg.buchungen)}>Zurücksetzen</Btn>
+                                {!rg.rNr&&<Btn size="sm" variant="outline" onClick={()=>zuruecksetzen(rg.buchungen)}>Zurücksetzen</Btn>}
                               )}
                             </div>
                           </div>

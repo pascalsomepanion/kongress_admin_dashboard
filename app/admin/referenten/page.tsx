@@ -120,7 +120,7 @@ export default function ReferentenPage(){
 
     return`<!DOCTYPE html>
 <html lang="de"><head><meta charset="utf-8"><title>Teilnahmebestätigung — ${r.nachname} ${r.vorname}</title>
-<style>@page{size:A4;margin:15mm 20mm 25mm 20mm}*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#111;line-height:1.5}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style>
+<style>@page{size:A4;margin:15mm 20mm 15mm 20mm}*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#111;line-height:1.5}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style>
 </head><body>
 
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8mm;padding-bottom:5mm;border-bottom:2px solid #FFBF00">
@@ -188,7 +188,7 @@ ${anwList.length>0?`
 </div>
 
 ${anwList.length>0?`
-<div style="position:fixed;bottom:15mm;left:20mm;right:20mm">
+<div style="margin-top:12mm">
   <div style="display:grid;grid-template-columns:auto 1fr;gap:12px;border:1.5px solid #333;padding:10px 14px;align-items:center">
     <div style="text-align:center">
       <div style="font-size:8px;font-weight:900;letter-spacing:0.05em;border:2px solid #111;padding:3px 6px">ÖÄK DIPLOM</div>

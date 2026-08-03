@@ -135,9 +135,18 @@ export default function AnwesenheitPage(){
 <style>@page{size:A4;margin:15mm 20mm 25mm 20mm}*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#111;line-height:1.5}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style>
 </head><body>
 <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10mm;padding-bottom:6mm;border-bottom:2px solid #FFBF00">
-  <div><div style="font-size:10px;font-weight:700;color:#555">Prof. h.c. Univ.-Doz. Dr. Günther Neumayr</div>
-  <div style="font-size:10px;color:#777">Österreichische Gesellschaft für Sportmedizin und Prävention</div></div>
-  <img src="/logo.svg" style="height:14mm;width:auto" onerror="this.style.display='none'"/>
+  <div style="display:flex;align-items:center;gap:8px">
+    <img src="/logo.svg" style="height:16mm;width:auto" onerror="this.style.display='none'"/>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:#111">Prof. h.c. Univ.-Doz. Dr. Günther Neumayr</div>
+      <div style="font-size:9px;color:#777">Österreichische Gesellschaft für Sportmedizin und Prävention</div>
+    </div>
+  </div>
+  <div style="text-align:right;font-size:10px;color:#555;line-height:1.7">
+    <div style="font-weight:700;color:#111">${k.name}</div>
+    <div>${ort}</div>
+    <div>${new Date(k.datum_von).toLocaleDateString('de-AT',{day:'numeric',month:'numeric',year:'numeric'})}–${new Date(k.datum_bis).toLocaleDateString('de-AT',{day:'numeric',month:'numeric',year:'numeric'})}</div>
+  </div>
 </div>
 <div style="text-align:center;margin-bottom:8mm">
   <div style="font-size:13px;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;margin-bottom:6mm">T E I L N A H M E B E S T Ä T I G U N G</div>
@@ -170,7 +179,7 @@ export default function AnwesenheitPage(){
 <div style="display:flex;justify-content:center;margin-top:12mm;margin-bottom:10mm">
   <div style="text-align:center">
     <div style="border-top:1px solid #333;width:70mm;padding-top:3mm">
-      <img src="/unterschrift.png" style="height:15mm;width:auto;display:block;margin-bottom:2mm" onerror="this.style.display='none'"/><div style="font-size:11px;font-weight:700;font-style:italic">Prof. h.c. Univ.-Doz. Dr. Günther Neumayr</div>
+      <img src="/unterschrift.png" style="height:15mm;width:auto;display:block;margin:0 auto 2mm auto" onerror="this.style.display='none'"/><div style="font-size:11px;font-weight:700;font-style:italic">Prof. h.c. Univ.-Doz. Dr. Günther Neumayr</div>
       <div style="font-size:10px;color:#555">Kongresspräsident</div>
     </div>
   </div>
@@ -189,8 +198,16 @@ export default function AnwesenheitPage(){
     </div>
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;margin-top:6px;font-size:8px;color:#555">
-    <div><div>Michaelsgasse 20, 9900 Lienz, Österreich</div><div>UID: ATU 61957546</div></div>
-    <div style="text-align:right"><div>Tel.: 04852 61952-52 · E-Mail: info@sportmedizin-arlberg.at</div><div>Website: www.sportmedizin-arlberg.at</div></div>
+    <div>
+      <div style="font-weight:700">Prof. h.c. Univ.-Doz. Dr. Günther Neumayr</div>
+      <div>Michaelsgasse 20</div>
+      <div>9900 Lienz, Österreich · UID: ATU 61957546</div>
+    </div>
+    <div style="text-align:right">
+      <div>Tel.: 04852 61952-52</div>
+      <div>E-Mail: info@sportmedizin-arlberg.at</div>
+      <div>Website: www.sportmedizin-arlberg.at</div>
+    </div>
   </div>
 </div>
 </body></html>`

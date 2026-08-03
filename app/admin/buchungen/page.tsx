@@ -4,7 +4,7 @@ import{supabase,getAktuellerKongress,type Kongress}from'@/lib/db'
 import{Btn,Badge,Loader,PageHeader}from'@/lib/ui'
 
 type Buchung={id:number;kurs_id:number;gebuchter_preis:number;zahlungsstatus:string;zahlungs_eingang_am:string|null;rechnungsnummer:string|null;gebucht_am:string;kurse:{titel:string;uhrzeit:string|null;fruehbucher_preis:number;spaetbucher_preis:number;mitglied_spaetbucher_preis:number|null}}
-type TeilnehmerGruppe={tnId:number;vorname:string;nachname:string;email:string;buchungen:Buchung[]}
+type TeilnehmerGruppe={tnId:number;vorname:string;nachname:string;email:string;ist_oegsmp_mitglied:boolean;buchungen:Buchung[]}
 
 export default function ZahlungenPage(){
   const[k,setK]=useState<Kongress|null>(null)
@@ -14,7 +14,7 @@ export default function ZahlungenPage(){
   const[sf,setSf]=useState('ausstehend')
   const[expanded,setExpanded]=useState<number|null>(null)
   const[saving,setSaving]=useState<string|null>(null)
-  const[zahlModal,setZahlModal]=useState<{buchungen:Buchung[];tn:{vorname:string;nachname:string;ist_oegsmp_mitglied:boolean};key:string}|null>(null)
+  const[zahlModal,setZahlModal]=useState<{buchungen:Buchung[];tn:TeilnehmerGruppe;key:string}|null>(null)
   const[zahlDatum,setZahlDatum]=useState('')
   const[zahlBar,setZahlBar]=useState(false)
   const[preisItems,setPreisItems]=useState<{id:number;titel:string;gebuchterPreis:number;normalPreis:number;useNormal:boolean}[]>([])
@@ -26,7 +26,7 @@ export default function ZahlungenPage(){
     const map:Record<number,TeilnehmerGruppe>={}
     ;(data??[]).forEach((b:any)=>{
       const tid=b.teilnehmer_id
-      if(!map[tid])map[tid]={tnId:tid,vorname:b.teilnehmer.vorname,nachname:b.teilnehmer.nachname,email:b.teilnehmer.email,buchungen:[]}
+      if(!map[tid])map[tid]={tnId:tid,vorname:b.teilnehmer.vorname,nachname:b.teilnehmer.nachname,email:b.teilnehmer.email,ist_oegsmp_mitglied:b.teilnehmer.ist_oegsmp_mitglied??false,buchungen:[]}
       map[tid].buchungen.push({id:b.id,kurs_id:b.kurs_id,gebuchter_preis:b.gebuchter_preis,zahlungsstatus:b.zahlungsstatus,zahlungs_eingang_am:b.zahlungs_eingang_am,rechnungsnummer:b.rechnungsnummer,gebucht_am:b.gebucht_am,kurse:b.kurse})
     })
     setGruppen(Object.values(map).sort((a,b)=>a.nachname.localeCompare(b.nachname)))
@@ -47,7 +47,7 @@ export default function ZahlungenPage(){
     }))
   }
 
-  function openZahlModal(buchungen:Buchung[],tn:{vorname:string;nachname:string;ist_oegsmp_mitglied:boolean},key:string){
+  function openZahlModal(buchungen:Buchung[],tn:{vorname:string;nachname:string;ist_oegsmp_mitglied?:boolean},key:string){
     setZahlDatum(new Date().toISOString().split('T')[0])
     setZahlBar(false)
     setPreisItems([])
@@ -166,7 +166,7 @@ export default function ZahlungenPage(){
                             </div>
                             <div className="flex gap-2">
                               {rg.hasOffen&&(
-                                <Btn size="sm" onClick={()=>openZahlModal(rg.buchungen,g.tn,rg.rNr??`k_${rg.buchungen[0].id}`)} disabled={saving===(rg.rNr??`k_${rg.buchungen[0].id}`)}>
+                                <Btn size="sm" onClick={()=>openZahlModal(rg.buchungen,g,rg.rNr??`k_${rg.buchungen[0].id}`)} disabled={saving===(rg.rNr??`k_${rg.buchungen[0].id}`)}>
                                   {saving===(rg.rNr??`k_${rg.buchungen[0].id}`)?'Speichert…':`✓ Zahlung erhalten${rg.rNr?' — '+rg.rNr:''}`}
                                 </Btn>
                               )}

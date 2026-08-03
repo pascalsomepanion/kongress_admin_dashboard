@@ -70,7 +70,7 @@ export function buildRechnungHTML(r: RechnungDaten): string {
 <meta charset="utf-8">
 <title>Rechnung ${r.rechnungsnummer}</title>
 <style>
-  @page { size: A4; margin: 15mm 20mm 20mm 20mm; }
+  @page { size: A4; margin: 15mm 20mm 25mm 20mm; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #111; background: white; }
   @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
@@ -163,7 +163,7 @@ ${r.bezahlt ? `<div style="font-size:13px;font-weight:bold;margin:5mm 0">Ihre Za
 </div>
 
 <!-- FOOTER -->
-<div style="margin-top:12mm;padding-top:4mm;border-top:1px solid #ccc;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:9px;color:#555;text-align:left">
+<div style="position:fixed;bottom:8mm;left:20mm;right:20mm;padding-top:4mm;border-top:1px solid #ccc;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:9px;color:#555;text-align:left">
   <div>
     <div style="font-weight:bold;margin-bottom:3px">${A.name}</div>
     <div>${A.strasse}</div>

@@ -120,7 +120,7 @@ export default function ReferentenPage(){
 
     return`<!DOCTYPE html>
 <html lang="de"><head><meta charset="utf-8"><title>Teilnahmebestätigung — ${r.nachname} ${r.vorname}</title>
-<style>@page{size:A4;margin:15mm 20mm 15mm 20mm}*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#111;line-height:1.5}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style>
+<style>@page{size:A4;margin:15mm 20mm 25mm 20mm}*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#111;line-height:1.5}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style>
 </head><body>
 
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8mm;padding-bottom:5mm;border-bottom:2px solid #FFBF00">

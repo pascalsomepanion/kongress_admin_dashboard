@@ -170,7 +170,7 @@ export default function AnwesenheitPage(){
 <div style="display:flex;justify-content:center;margin-top:12mm;margin-bottom:10mm">
   <div style="text-align:center">
     <div style="border-top:1px solid #333;width:70mm;padding-top:3mm">
-      <div style="font-size:11px;font-weight:700;font-style:italic">Prof. h.c. Univ.-Doz. Dr. Günther Neumayr</div>
+      <img src="/unterschrift.png" style="height:15mm;width:auto;display:block;margin-bottom:2mm" onerror="this.style.display='none'"/><div style="font-size:11px;font-weight:700;font-style:italic">Prof. h.c. Univ.-Doz. Dr. Günther Neumayr</div>
       <div style="font-size:10px;color:#555">Kongresspräsident</div>
     </div>
   </div>

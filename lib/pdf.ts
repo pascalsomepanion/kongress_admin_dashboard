@@ -78,16 +78,19 @@ export function buildRechnungHTML(r: RechnungDaten): string {
 </head>
 <body>
 
-<!-- HEADER: Logo + Datum/Bearbeiterin nebeneinander -->
-<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8mm">
-  <div style="flex:1"></div>
-  <div style="text-align:right">
-    <img src="/logo.svg" style="height:18mm;width:auto;display:block;margin-left:auto;margin-bottom:6px" alt="Logo"/>
-    <div style="font-size:10px;line-height:1.8;color:#333">
-      <div>${r.datum}</div>
-      <div>Bearbeiterin: ${A.bearbeiterin}</div>
-      <div>E-Mail: ${A.email}</div>
+<!-- HEADER -->
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8mm;padding-bottom:5mm;border-bottom:2px solid #FFBF00">
+  <div style="display:flex;align-items:center;gap:8px">
+    <img src="/logo.svg" style="height:16mm;width:auto" onerror="this.style.display='none'"/>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:#111">${A.name}</div>
+      <div style="font-size:9px;color:#777">Österreichische Gesellschaft für Sportmedizin und Prävention</div>
     </div>
+  </div>
+  <div style="text-align:right;font-size:10px;color:#555;line-height:1.7">
+    <div>${r.datum}</div>
+    <div>Bearbeiterin: ${A.bearbeiterin}</div>
+    <div>E-Mail: ${A.email}</div>
   </div>
 </div>
 
@@ -126,7 +129,7 @@ ${r.ohne_tabelle ? `
 ` : `
 <table style="width:100%;border-collapse:collapse;font-size:10px;margin-bottom:5mm">
   <thead>
-    <tr style="background:#f0f0f0">
+    <tr style="background:#FFBF00;color:#111">
       <th style="border:1px solid #ccc;padding:6px 10px;text-align:left;width:5%">Pos.</th>
       <th style="border:1px solid #ccc;padding:6px 10px;text-align:left">Bezeichnung</th>
       <th style="border:1px solid #ccc;padding:6px 10px;text-align:center;width:8%">Menge</th>
@@ -158,11 +161,12 @@ ${r.bezahlt ? `<div style="font-size:13px;font-weight:bold;margin:5mm 0">Ihre Za
 </div>
 
 <!-- FOOTER -->
-<div style="margin-top:auto;padding-top:5mm;border-top:1px solid #ccc;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;font-size:9px;color:#555;position:fixed;bottom:10mm;left:20mm;right:20mm">
+<div style="margin-top:12mm;padding-top:4mm;border-top:1px solid #ccc;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:9px;color:#555">
   <div>
     <div style="font-weight:bold;margin-bottom:3px">${A.name}</div>
     <div>${A.strasse}</div>
     <div>${A.plz_ort}</div>
+    <div>Österreich · UID: ${A.uid}</div>
   </div>
   <div>
     <div style="font-weight:bold;margin-bottom:3px">Bankverbindung</div>

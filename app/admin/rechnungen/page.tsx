@@ -63,10 +63,11 @@ export default function RechnungenPage(){
     })
   }
 
-  function buildStornoHtml(g:TGroup,stornoNr:string,origNr:string,stornierte:Buchung[]):string{
+  function buildStornoHtml(g:TGroup,stornoNr:string,origNr:string,stornierte:Buchung[],erstattung:number=0,einbehalt:number=0,typ:string='kostenlos'):string{
     if(!k)return''
     const brutto=stornierte.reduce((s,b)=>s+b.gebuchter_preis,0)
-    const netto=brutto/1.2;const mwst=brutto-netto
+    const effErstattung=erstattung||brutto
+    const netto=effErstattung/1.2;const mwst=effErstattung-netto
     const posTR=stornierte.map((b,i)=>`<tr><td style="border:1px solid #ccc;padding:6px 10px;font-size:10px">${i+1}.</td><td style="border:1px solid #ccc;padding:6px 10px;font-size:10px">${b.kurse.titel}</td><td style="border:1px solid #ccc;padding:6px 10px;text-align:center;font-size:10px">1</td><td style="border:1px solid #ccc;padding:6px 10px;font-size:10px">Stück</td><td style="border:1px solid #ccc;padding:6px 10px;text-align:right;font-size:10px;color:#dc2626">−${b.gebuchter_preis.toFixed(2)}</td><td style="border:1px solid #ccc;padding:6px 10px;text-align:right;font-size:10px;color:#dc2626">−${b.gebuchter_preis.toFixed(2)}</td></tr>`).join('')
     return`<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><title>Stornorechnung ${stornoNr}</title><style>@page{size:A4;margin:15mm 20mm 20mm 20mm}*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:11px;color:#111}@media print{body{-webkit-print-color-adjust:exact}}</style></head><body>
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8mm"><div></div><div style="text-align:right"><img src="/logo.svg" style="height:18mm;width:auto;display:block;margin-left:auto;margin-bottom:6px"/><div style="font-size:10px;line-height:1.8;color:#333"><div>${new Date().toLocaleDateString('de-AT')}</div><div>Bearbeiterin: Dr. iur. Mara Neumayr, MBL</div><div>E-Mail: info@sportmedizin-arlberg.at</div></div></div></div>
@@ -82,23 +83,27 @@ export default function RechnungenPage(){
     </body></html>`
   }
 
-  async function storniereBuchung(g:TGroup, b:Buchung){
+  async function stornoRechnung(g:TGroup, rechNr:string){
     if(!k)return
-    const bezahlt=b.zahlungsstatus==='bezahlt'
-    if(!confirm(`"${b.kurse.titel}" stornieren?${bezahlt?' Da bereits bezahlt wird eine Stornorechnung erstellt.':''}`))return
-    await supabase.from('buchungen').update({zahlungsstatus:'storniert'}).eq('id',b.id)
-    if(bezahlt){
-      // Stornorechnung vorbereiten
-      const existing=await getAlleRechnungsnummern(k.id)
-      const nr=nextRechnungsnr(existing,k.jahr)+'S'
-      setStornoNr(nr)
-      setStornoBuchungen([b])
-      setStornoGroup(g)
-      setPreviewHtml(buildStornoHtml(g,nr,b.rechnungsnummer??'',[ b]))
-      setPreviewNr(nr)
-      setPreviewMode('storno')
-    }
-    await load(k.id)
+    const buchungen=g.buchungen.filter(b=>b.rechnungsnummer===rechNr&&b.zahlungsstatus==='bezahlt')
+    if(!buchungen.length)return
+    const heute=new Date()
+    const kostenlosBis=new Date(k.storno_kostenlos_bis)
+    const fuenfzigBis=new Date(k.storno_50_bis)
+    let typ:'kostenlos'|'50prozent'|'keine'='keine'
+    let erstattung=0
+    const brutto=buchungen.reduce((s,b)=>s+b.gebuchter_preis,0)
+    if(heute<=kostenlosBis){typ='kostenlos';erstattung=brutto}
+    else if(heute<=fuenfzigBis){typ='50prozent';erstattung=Math.round(brutto*0.5*100)/100}
+    else{typ='keine';erstattung=0}
+    const existing=await getAlleRechnungsnummern(k.id)
+    const nr=`${rechNr}-Storno`
+    setStornoNr(nr)
+    setStornoBuchungen(buchungen)
+    setStornoGroup(g)
+    setPreviewHtml(buildStornoHtml(g,nr,rechNr,buchungen,erstattung,brutto-erstattung,typ))
+    setPreviewNr(nr)
+    setPreviewMode('storno')
   }
 
   async function saveRechnung(){
@@ -202,6 +207,11 @@ export default function RechnungenPage(){
                                 {h.rNr&&<Btn size="sm" variant="outline" onClick={()=>loadPdf(g,h.rNr!)}>👁 Anzeigen</Btn>}
                                 {h.rNr&&bezahlt&&<Btn size="sm" variant="outline" disabled={sending===h.rNr} onClick={async()=>{const html=buildHtml(g,h.rNr!,h.buchungen,'Damen und Herren',bezahlt);await sendEmail(g,h.rNr!,html)}}>{sending===h.rNr?'Sendet…':'📧 Senden'}</Btn>}
                                 {h.rNr&&!bezahlt&&<span className="text-[10px] text-gray-400 italic">Senden erst nach Zahlungseingang</span>}
+                                {h.rNr&&bezahlt&&(
+                                  <Btn size="sm" variant="danger" onClick={()=>stornoRechnung(g,h.rNr!)}>
+                                    🔴 Stornieren
+                                  </Btn>
+                                )}
                                 {!h.rNr&&<Btn size="sm" onClick={()=>{setAnrede('Damen und Herren');setCreating({group:g,buchungen:h.buchungen});setPreviewMode('new')}}>📄 Rechnung erstellen</Btn>}
                               </div>
                             </div>
@@ -215,11 +225,7 @@ export default function RechnungenPage(){
                                   </div>
                                   <div className="flex items-center gap-3">
                                     <span className="text-sm font-bold text-gray-700">€ {b.gebuchter_preis.toFixed(2)}</span>
-                                    {b.zahlungsstatus!=='storniert'&&(
-                                      <button onClick={()=>storniereBuchung(g,b)} className="text-xs text-red-500 hover:text-red-700 font-semibold border border-red-200 hover:border-red-400 px-2 py-1 rounded-lg transition-all">
-                                        Stornieren
-                                      </button>
-                                    )}
+                                    
                                   </div>
                                 </div>
                               ))}

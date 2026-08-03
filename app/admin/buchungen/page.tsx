@@ -16,6 +16,7 @@ export default function ZahlungenPage(){
   const[saving,setSaving]=useState<string|null>(null)
   const[zahlModal,setZahlModal]=useState<{buchungen:Buchung[];tn:{vorname:string;nachname:string;ist_oegsmp_mitglied:boolean};key:string}|null>(null)
   const[zahlDatum,setZahlDatum]=useState('')
+  const[erinnerungSending,setErinnerungSending]=useState<number|null>(null)
   const[zahlBar,setZahlBar]=useState(false)
   const[preisItems,setPreisItems]=useState<{id:number;titel:string;gebuchterPreis:number;normalPreis:number;useNormal:boolean}[]>([])
 
@@ -111,6 +112,21 @@ export default function ZahlungenPage(){
   const totalOffen=gruppen.flatMap(g=>g.buchungen).filter(b=>b.zahlungsstatus==='ausstehend').reduce((s,b)=>s+b.gebuchter_preis,0)
   const anzahlOffen=new Set(gruppen.filter(g=>g.buchungen.some(b=>b.zahlungsstatus==='ausstehend')).map(g=>g.tnId)).size
 
+  async function sendZahlungserinnerung(g:TeilnehmerGruppe){
+    if(!k)return
+    setErinnerungSending(g.tnId)
+    const offene=g.buchungen.filter(b=>b.zahlungsstatus==='ausstehend')
+    const betrag=offene.reduce((s,b)=>s+b.gebuchter_preis,0)
+    await fetch('/api/send-zahlungserinnerung',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      email:g.email,vorname:g.vorname,nachname:g.nachname,
+      betrag,kurse:offene.map(b=>b.kurse.titel),
+      kongress_name:k.name,kongress_jahr:k.jahr,
+      iban:k.iban,bic:k.bic,kontoinhaber:k.kontoinhaber,
+      kontakt_email:k.kontakt_email,
+    })})
+    setErinnerungSending(null)
+  }
+
   return(
     <div>
       <PageHeader title="Zahlungen" sub={`${anzahlOffen} Teilnehmer mit offenen Zahlungen · Bezahlt: €${totalBezahlt.toFixed(2)} · Offen: €${totalOffen.toFixed(2)}`}>
@@ -145,6 +161,9 @@ export default function ZahlungenPage(){
                       {allesBezahlt&&<Badge label="✓ Alles bezahlt" variant="green"/>}
                       {hatOffene&&<span className="text-sm font-bold text-amber-700">€ {gesamtOffen.toFixed(2)} offen</span>}
                       {gesamtBezahlt>0&&!allesBezahlt&&<span className="text-sm font-semibold text-green-700">€ {gesamtBezahlt.toFixed(2)} bezahlt</span>}
+                      {gesamtOffen>0&&<Btn size="sm" variant="outline" disabled={erinnerungSending===g.tnId} onClick={()=>sendZahlungserinnerung(g)}>
+                        {erinnerungSending===g.tnId?'Sendet…':'📧 Zahlungserinnerung'}
+                      </Btn>}
                     </div>
                   </div>
 

@@ -14,7 +14,7 @@ export default function ZahlungenPage(){
   const[sf,setSf]=useState('ausstehend')
   const[expanded,setExpanded]=useState<number|null>(null)
   const[saving,setSaving]=useState<string|null>(null)
-  const[zahlModal,setZahlModal]=useState<{buchungen:Buchung[];tn:TeilnehmerGruppe;key:string}|null>(null)
+  const[zahlModal,setZahlModal]=useState<{buchungen:Buchung[];tn:{vorname:string;nachname:string;ist_oegsmp_mitglied:boolean};key:string}|null>(null)
   const[zahlDatum,setZahlDatum]=useState('')
   const[zahlBar,setZahlBar]=useState(false)
   const[preisItems,setPreisItems]=useState<{id:number;titel:string;gebuchterPreis:number;normalPreis:number;useNormal:boolean}[]>([])
@@ -47,7 +47,7 @@ export default function ZahlungenPage(){
     }))
   }
 
-  function openZahlModal(buchungen:Buchung[],tn:{vorname:string;nachname:string;ist_oegsmp_mitglied?:boolean},key:string){
+  function openZahlModal(buchungen:Buchung[],tn:{vorname:string;nachname:string;ist_oegsmp_mitglied:boolean},key:string){
     setZahlDatum(new Date().toISOString().split('T')[0])
     setZahlBar(false)
     setPreisItems([])
@@ -166,7 +166,7 @@ export default function ZahlungenPage(){
                             </div>
                             <div className="flex gap-2">
                               {rg.hasOffen&&(
-                                <Btn size="sm" onClick={()=>openZahlModal(rg.buchungen,g,rg.rNr??`k_${rg.buchungen[0].id}`)} disabled={saving===(rg.rNr??`k_${rg.buchungen[0].id}`)}>
+                                <Btn size="sm" onClick={()=>openZahlModal(rg.buchungen,{vorname:g.vorname,nachname:g.nachname,ist_oegsmp_mitglied:g.ist_oegsmp_mitglied},rg.rNr??`k_${rg.buchungen[0].id}`)} disabled={saving===(rg.rNr??`k_${rg.buchungen[0].id}`)}>
                                   {saving===(rg.rNr??`k_${rg.buchungen[0].id}`)?'Speichert…':`✓ Zahlung erhalten${rg.rNr?' — '+rg.rNr:''}`}
                                 </Btn>
                               )}

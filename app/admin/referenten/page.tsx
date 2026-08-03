@@ -24,7 +24,7 @@ export default function ReferentenPage(){
   // Only Pflichtkurse can be attended by Referenten (RSS, Ärztesport, Ski Alpin + Festvortrag)
   const pflichtkurse=kurse.filter(k=>k.ist_pflichtprogramm)
   // Also RSS (block, not pflicht but relevant)
-  const relevanteKurse=[...pflichtkurse,...kurse.filter(k=>k.kurs_gruppe==='block')]
+  const relevanteKurse=kurse.filter(kk=>!kk.ist_pflichtprogramm)
 
   useEffect(()=>{getAktuellerKongress().then(async k=>{
     if(!k){setLoading(false);return}
@@ -240,32 +240,34 @@ ${anwList.length>0?`
                   {isOpen&&(
                     <div className="bg-[#FFFDF5] border-t border-[#FFE082]/50 px-6 py-4">
                       <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">Besuchte Kurse (optional)</p>
-                      <div className="space-y-2 mb-4">
+                      <div className="grid grid-cols-2 gap-2 mb-4">
                         {relevanteKurse.map(kurs=>{
                           const a=getAnw(r.id,kurs.id)
                           const val=a?.einheiten_besucht??0
                           const dfp=a?.dfp_erhalten??0
+                          const aktiv=val>0
                           return(
-                            <div key={kurs.id} className="bg-white border border-gray-200 rounded-xl p-3 grid grid-cols-4 gap-3 items-center">
-                              <div className="col-span-2">
-                                <p className="text-sm font-semibold">{kurs.titel}</p>
-                                <p className="text-[10px] text-gray-400">{kurs.uhrzeit??kurs.wochentag_datum}</p>
+                            <div key={kurs.id} className={`rounded-xl p-3 border transition-all cursor-pointer ${aktiv?'border-[#FFBF00] bg-amber-50':'border-gray-200 bg-white hover:border-gray-300'}`}>
+                              <div className="flex items-start justify-between gap-2 mb-2">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-bold text-gray-800 truncate">{kurs.titel}</p>
+                                  <p className="text-[10px] text-gray-400 mt-0.5">{kurs.uhrzeit??kurs.wochentag_datum}</p>
+                                </div>
+                                {dfp>0&&<span className="text-xs font-bold text-amber-600 flex-shrink-0">{dfp} DFP</span>}
                               </div>
                               <div className="flex items-center gap-2">
                                 {kurs.einheiten_gesamt===1
-                                  ?<label className="flex items-center gap-2 text-sm cursor-pointer">
+                                  ?<label className="flex items-center gap-1.5 text-xs cursor-pointer text-gray-600">
                                     <input type="checkbox" checked={val===1} onChange={e=>updateAnw(r.id,kurs.id,e.target.checked?1:0,kurs)} className="accent-amber-500"/>
                                     Anwesend
                                   </label>
-                                  :<><input type="number" min={0} max={kurs.einheiten_gesamt} value={val||''} placeholder="0"
-                                    onChange={e=>updateAnw(r.id,kurs.id,Math.min(parseInt(e.target.value)||0,kurs.einheiten_gesamt),kurs)}
-                                    className="w-14 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:border-[#FFBF00]"/>
-                                    <span className="text-xs text-gray-400">/ {kurs.einheiten_gesamt} Std.</span>
-                                  </>
+                                  :<div className="flex items-center gap-1.5">
+                                    <input type="number" min={0} max={kurs.einheiten_gesamt} value={val||''} placeholder="0"
+                                      onChange={e=>updateAnw(r.id,kurs.id,Math.min(parseInt(e.target.value)||0,kurs.einheiten_gesamt),kurs)}
+                                      className="w-12 border border-gray-200 rounded-lg px-2 py-1 text-xs text-center focus:outline-none focus:border-[#FFBF00]"/>
+                                    <span className="text-[10px] text-gray-400">/ {kurs.einheiten_gesamt} Std.</span>
+                                  </div>
                                 }
-                              </div>
-                              <div className="text-right">
-                                {dfp>0&&<span className="text-sm font-bold text-amber-700">{dfp} DFP</span>}
                               </div>
                             </div>
                           )

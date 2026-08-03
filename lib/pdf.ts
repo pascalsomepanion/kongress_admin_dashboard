@@ -154,28 +154,32 @@ ${r.bezahlt ? `<div style="font-size:13px;font-weight:bold;margin:5mm 0">Ihre Za
 <!-- GRUSS -->
 <div style="font-size:10px;line-height:1.9;margin-top:8mm">
   <p>Mit sportlichen Grüßen</p>
-  <br>
-  <img src="/unterschrift.png" style="height:15mm;width:auto;display:block;margin:0 auto 2mm auto"/>
-  <p style="font-weight:bold;font-style:italic">${A.name}</p>
-  <p>Kongresspräsident</p>
+  <br><br>
+  <div style="display:inline-block;text-align:center">
+    <img src="/unterschrift.png" style="height:15mm;width:auto;display:block;margin-bottom:0"/>
+    <div style="border-top:1px solid #333;padding-top:3px;margin-top:0">
+      <p style="font-weight:bold;font-style:italic">${A.name}</p>
+      <p>Kongresspräsident</p>
+    </div>
+  </div>
 </div>
 
 <!-- FOOTER -->
-<div style="margin-top:12mm;padding-top:4mm;border-top:1px solid #ccc;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:9px;color:#555">
+<div style="margin-top:12mm;padding-top:4mm;border-top:1px solid #ccc;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:9px;color:#555;text-align:left">
   <div>
     <div style="font-weight:bold;margin-bottom:3px">${A.name}</div>
     <div>${A.strasse}</div>
     <div>${A.plz_ort}</div>
     <div>Österreich · UID: ${A.uid}</div>
   </div>
-  <div>
+  <div style="text-align:center">
     <div style="font-weight:bold;margin-bottom:3px">Bankverbindung</div>
     <div>Inhaber: Günther Neumayr</div>
     <div>Bank: ${A.bank}</div>
     <div>IBAN: ${A.iban}</div>
     <div>BIC: ${A.bic}</div>
   </div>
-  <div>
+  <div style="text-align:right">
     <div style="font-weight:bold;margin-bottom:3px">Kontakt</div>
     <div>Tel.: ${A.tel}</div>
     <div>E-Mail: ${A.email}</div>

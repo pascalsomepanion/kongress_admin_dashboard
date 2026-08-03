@@ -3,9 +3,9 @@ import{useEffect,useState}from'react'
 import{supabase,getAktuellerKongress,getKurse,type Kongress,type Kurs}from'@/lib/db'
 import{Btn,Badge,Loader,Modal,Field,PageHeader}from'@/lib/ui'
 
-type Referent={id:number;vorname:string;nachname:string;email:string;oeak_nr:string;anrede:string;kongress_id:number}
+type Referent={id:number;vorname:string;nachname:string;email:string;oeak_nr:string;anrede:string;titel:string;kongress_id:number}
 type RefAnwesenheit={id:number;referent_id:number;kurs_id:number;einheiten_besucht:number;dfp_erhalten:number}
-const EMPTY_REF={vorname:'',nachname:'',email:'',oeak_nr:'',anrede:'Herr',kongress_id:0}
+const EMPTY_REF={vorname:'',nachname:'',email:'',oeak_nr:'',anrede:'Herr',titel:'',kongress_id:0}
 
 export default function ReferentenPage(){
   const[k,setK]=useState<Kongress|null>(null)
@@ -42,7 +42,7 @@ export default function ReferentenPage(){
     if(!edit||!k)return
     setSaving(true)
     if(edit.id){
-      await supabase.from('referenten').update({vorname:edit.vorname,nachname:edit.nachname,email:edit.email,oeak_nr:edit.oeak_nr,anrede:edit.anrede}).eq('id',edit.id)
+      await supabase.from('referenten').update({vorname:edit.vorname,nachname:edit.nachname,email:edit.email,oeak_nr:edit.oeak_nr,anrede:edit.anrede,titel:(edit as any).titel??''}).eq('id',edit.id)
       setList(prev=>prev.map(r=>r.id===edit.id?{...r,...edit} as Referent:r))
     } else {
       const{data}=await supabase.from('referenten').insert({...edit,kongress_id:k.id}).select('*').single()
@@ -98,7 +98,7 @@ export default function ReferentenPage(){
     const anwList=(anwesenheit[refId]??[]).filter(a=>a.einheiten_besucht>0)
     const datum=`${new Date(k.datum_von).toLocaleDateString('de-AT',{day:'numeric',month:'long',year:'numeric'})} – ${new Date(k.datum_bis).toLocaleDateString('de-AT',{day:'numeric',month:'long',year:'numeric'})}`
     const ort=k.ort??'St. Christoph am Arlberg'
-    const anredeText=`${r.anrede} ${r.vorname} ${r.nachname}`
+    const anredeText=`${r.anrede}${(r as any).titel?` ${(r as any).titel}`:''} ${r.vorname} ${r.nachname}`
     const dfpId=(k as any).dfp_id??''
 
     const kursRows=anwList.map(a=>{
@@ -227,7 +227,7 @@ ${anwList.length>0?`
                   <div className={`flex items-center gap-4 px-4 py-3.5 cursor-pointer transition-all ${isOpen?'bg-[#FFF9E6]':'hover:bg-gray-50'}`} onClick={()=>toggleExpand(r)}>
                     <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 border-2 ${isOpen?'border-[#FFBF00] bg-[#FFBF00] text-black':'border-gray-300 text-gray-400'}`}>{isOpen?'−':'+'}</div>
                     <div className="flex-1 min-w-0">
-                      <span className="font-semibold text-sm">{r.anrede} {r.nachname} {r.vorname}</span>
+                      <span className="font-semibold text-sm">{r.anrede} {(r as any).titel?`${(r as any).titel} `:''}{r.nachname} {r.vorname}</span>
                       <span className="text-xs text-gray-400 ml-3">{r.email}</span>
                     </div>
                     <div className="flex items-center gap-2" onClick={e=>e.stopPropagation()}>
@@ -305,6 +305,7 @@ ${anwList.length>0?`
                 ))}
               </div>
             </div>
+            <Field label="Titel (z.B. Dr., Prof. h.c., Univ.-Doz.)" id="r-ti" value={(edit as any).titel??''} onChange={v=>setEdit({...edit,titel:v} as any)} span2/>
             <Field label="Vorname *" id="r-vn" value={edit.vorname??''} onChange={v=>setEdit({...edit,vorname:v})}/>
             <Field label="Nachname *" id="r-nn" value={edit.nachname??''} onChange={v=>setEdit({...edit,nachname:v})}/>
             <Field label="E-Mail" id="r-em" value={edit.email??''} onChange={v=>setEdit({...edit,email:v})} span2 type="email"/>

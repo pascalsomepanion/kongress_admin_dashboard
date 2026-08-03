@@ -196,7 +196,7 @@ export default function AnwesenheitPage(){
       ${dfpId?`<div style="display:flex;justify-content:space-between"><span style="font-weight:700">DFP – ID</span><span style="font-weight:700">${dfpId}</span></div>`:''}
     </div>
   </div>
-  <div style="position:fixed;bottom:8mm;left:20mm;right:20mm;padding-top:4px;border-top:1px solid #ccc;display:grid;grid-template-columns:1fr 1fr;font-size:8px;color:#555">
+  <div style="margin-top:auto;width:100%;padding-top:3mm;border-top:1px solid #ccc;display:grid;grid-template-columns:1fr 1fr;font-size:8px;color:#555;margin-top:10mm">
     <div>
       <div style="font-weight:700">Prof. h.c. Univ.-Doz. Dr. Günther Neumayr</div>
       <div>Michaelsgasse 20</div>

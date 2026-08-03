@@ -308,8 +308,7 @@ export default function TeilnehmerPage(){
                 const aktivGebucht=aktuell.find(b=>b.kurs_id===kurs.id&&b.zahlungsstatus!=='storniert')
                 const storniertOhneRechnung=aktuell.find(b=>b.kurs_id===kurs.id&&b.zahlungsstatus==='storniert'&&!b.rechnungsnummer)
                 const hatKonflikt=checkKonflikt(kurs,aktuell)!==''
-                const storniertMitRechnung=aktuell.find(b=>b.kurs_id===kurs.id&&b.zahlungsstatus==='storniert'&&b.rechnungsnummer)
-                return !aktivGebucht&&!storniertOhneRechnung&&!hatKonflikt&&!storniertMitRechnung
+                return !aktivGebucht&&!storniertOhneRechnung&&!hatKonflikt
               })
               if(verfuegbar.length===0)return null
               return(
@@ -329,7 +328,7 @@ export default function TeilnehmerPage(){
                       return(
                         <div key={kurs.id} className="flex items-center justify-between p-3 rounded-xl border border-gray-200 hover:border-[#FFBF00] bg-white transition-all">
                           <div>
-                            <p className="text-sm font-semibold text-gray-800">{kurs.titel}</p>
+                            <p className="text-sm font-semibold text-gray-800">{kurs.titel}{aktuell.find(b=>b.kurs_id===kurs.id&&b.zahlungsstatus==='storniert')&&<span className="ml-2 text-[9px] bg-red-50 text-red-500 px-1.5 py-0.5 rounded font-bold">STORNIERT</span>}</p>
                             <p className="text-xs text-gray-400">{kurs.uhrzeit??kurs.wochentag_datum}</p>
                           </div>
                           <div className="flex items-center gap-3">

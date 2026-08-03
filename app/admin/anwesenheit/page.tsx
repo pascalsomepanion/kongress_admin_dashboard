@@ -142,7 +142,10 @@ export default function AnwesenheitPage(){
       <div style="font-size:9px;color:#777">Österreichische Gesellschaft für Sportmedizin und Prävention</div>
     </div>
   </div>
-
+  <div style="text-align:right;font-size:10px;color:#555;line-height:1.7">
+    <div>${ort}</div>
+    <div>${new Date(k.datum_von).toLocaleDateString('de-AT',{day:'numeric',month:'numeric',year:'numeric'})}–${new Date(k.datum_bis).toLocaleDateString('de-AT',{day:'numeric',month:'numeric',year:'numeric'})}</div>
+  </div>
 </div>
 <div style="text-align:center;margin-bottom:5mm">
   <div style="font-size:13px;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;margin-bottom:6mm">T E I L N A H M E B E S T Ä T I G U N G</div>
@@ -174,7 +177,7 @@ export default function AnwesenheitPage(){
 </table>
 <div style="display:flex;justify-content:center;margin-top:12mm;margin-bottom:10mm">
   <div style="text-align:center">
-    <div style="border-top:1px solid #333;width:70mm;padding-top:3mm">
+    <div>
       <img src="/unterschrift.png" style="height:15mm;width:auto;display:block;margin:0 auto 2mm auto" onerror="this.style.display='none'"/><div style="font-size:11px;font-weight:700;font-style:italic">Prof. h.c. Univ.-Doz. Dr. Günther Neumayr</div>
       <div style="font-size:10px;color:#555">Kongresspräsident</div>
     </div>

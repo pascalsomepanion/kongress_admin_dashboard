@@ -166,7 +166,7 @@ export default function ZahlungenPage(){
                             </div>
                             <div className="flex gap-2">
                               {rg.hasOffen&&(
-                                <Btn size="sm" onClick={()=>setBezahlt(rg.buchungen)} disabled={saving===(rg.rNr??`k_${rg.buchungen[0].id}`)}>
+                                <Btn size="sm" onClick={()=>openZahlModal(rg.buchungen,g.tn,rg.rNr??`k_${rg.buchungen[0].id}`)} disabled={saving===(rg.rNr??`k_${rg.buchungen[0].id}`)}>
                                   {saving===(rg.rNr??`k_${rg.buchungen[0].id}`)?'Speichert…':`✓ Zahlung erhalten${rg.rNr?' — '+rg.rNr:''}`}
                                 </Btn>
                               )}

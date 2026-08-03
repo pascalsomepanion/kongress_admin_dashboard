@@ -156,11 +156,9 @@ ${r.bezahlt ? `<div style="font-size:13px;font-weight:bold;margin:5mm 0">Ihre Za
   <p>Mit sportlichen Grüßen</p>
   <br><br>
   <div style="display:inline-block;text-align:center">
-    <img src="/unterschrift.png" style="height:15mm;width:auto;display:block;margin-bottom:0"/>
-    <div style="border-top:1px solid #333;padding-top:3px;margin-top:0">
-      <p style="font-weight:bold;font-style:italic">${A.name}</p>
-      <p>Kongresspräsident</p>
-    </div>
+    <img src="/unterschrift.png" style="height:15mm;width:auto;display:block;margin-bottom:3px"/>
+    <p style="font-weight:bold;font-style:italic">${A.name}</p>
+    <p>Kongresspräsident</p>
   </div>
 </div>
 

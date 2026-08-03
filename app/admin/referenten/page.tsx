@@ -3,9 +3,9 @@ import{useEffect,useState}from'react'
 import{supabase,getAktuellerKongress,getKurse,type Kongress,type Kurs}from'@/lib/db'
 import{Btn,Badge,Loader,Modal,Field,PageHeader}from'@/lib/ui'
 
-type Referent={id:number;vorname:string;nachname:string;email:string;oeak_nr:string;anrede:string;titel:string;kongress_id:number}
+type Referent={id:number;vorname:string;nachname:string;email:string;oeak_nr:string;anrede:string;titel:string;datum_von:string|null;datum_bis:string|null;kongress_id:number}
 type RefAnwesenheit={id:number;referent_id:number;kurs_id:number;einheiten_besucht:number;dfp_erhalten:number}
-const EMPTY_REF={vorname:'',nachname:'',email:'',oeak_nr:'',anrede:'Herr',titel:'',kongress_id:0}
+const EMPTY_REF={vorname:'',nachname:'',email:'',oeak_nr:'',anrede:'Herr',titel:'',datum_von:null,datum_bis:null,kongress_id:0}
 
 export default function ReferentenPage(){
   const[k,setK]=useState<Kongress|null>(null)
@@ -42,7 +42,7 @@ export default function ReferentenPage(){
     if(!edit||!k)return
     setSaving(true)
     if(edit.id){
-      await supabase.from('referenten').update({vorname:edit.vorname,nachname:edit.nachname,email:edit.email,oeak_nr:edit.oeak_nr,anrede:edit.anrede,titel:(edit as any).titel??''}).eq('id',edit.id)
+      await supabase.from('referenten').update({vorname:edit.vorname,nachname:edit.nachname,email:edit.email,oeak_nr:edit.oeak_nr,anrede:edit.anrede,titel:(edit as any).titel??'',datum_von:(edit as any).datum_von??null,datum_bis:(edit as any).datum_bis??null}).eq('id',edit.id)
       setList(prev=>prev.map(r=>r.id===edit.id?{...r,...edit} as Referent:r))
     } else {
       const{data}=await supabase.from('referenten').insert({...edit,kongress_id:k.id}).select('*').single()
@@ -96,7 +96,9 @@ export default function ReferentenPage(){
   function buildBestaetigung(r:Referent,refId:number):string{
     if(!k)return''
     const anwList=(anwesenheit[refId]??[]).filter(a=>a.einheiten_besucht>0)
-    const datum=`${new Date(k.datum_von).toLocaleDateString('de-AT',{day:'numeric',month:'long',year:'numeric'})} – ${new Date(k.datum_bis).toLocaleDateString('de-AT',{day:'numeric',month:'long',year:'numeric'})}`
+    const datVon=r.datum_von??k.datum_von
+    const datBis=r.datum_bis??k.datum_bis
+    const datum=`${new Date(datVon).toLocaleDateString('de-AT',{day:'numeric',month:'long',year:'numeric'})} – ${new Date(datBis).toLocaleDateString('de-AT',{day:'numeric',month:'long',year:'numeric'})}`
     const ort=k.ort??'St. Christoph am Arlberg'
     const anredeText=`${r.anrede}${(r as any).titel?` ${(r as any).titel}`:''} ${r.vorname} ${r.nachname}`
     const dfpId=(k as any).dfp_id??''
@@ -136,7 +138,7 @@ export default function ReferentenPage(){
 </div>
 
 <div style="text-align:center;font-size:12px;margin-bottom:8mm;line-height:2.2">
-  hat vom ${new Date(k.datum_von).toLocaleDateString('de-AT',{day:'numeric',month:'long',year:'numeric'})} bis ${new Date(k.datum_bis).toLocaleDateString('de-AT',{day:'numeric',month:'long',year:'numeric'})} am<br>
+  hat vom ${new Date(datVon).toLocaleDateString('de-AT',{day:'numeric',month:'long',year:'numeric'})} bis ${new Date(datBis).toLocaleDateString('de-AT',{day:'numeric',month:'long',year:'numeric'})} am<br>
   <strong style="font-size:13px">${k.name}</strong><br>
   ${ort}<br>
   als Referent/Referentin teilgenommen.
@@ -164,7 +166,7 @@ ${anwList.length>0?`
   </tbody>
 </table>`:''}
 
-<div style="text-align:right;font-size:11px;color:#555;margin-bottom:12mm">${ort}, den ${new Date(k.datum_bis).toLocaleDateString('de-AT',{day:'numeric',month:'long',year:'numeric'})}</div>
+<div style="text-align:right;font-size:11px;color:#555;margin-bottom:12mm">${ort}, den ${new Date(datBis).toLocaleDateString('de-AT',{day:'numeric',month:'long',year:'numeric'})}</div>
 
 <div style="display:flex;justify-content:center;margin-bottom:10mm">
   <div style="text-align:center">
@@ -312,6 +314,18 @@ ${anwList.length>0?`
             <Field label="Nachname *" id="r-nn" value={edit.nachname??''} onChange={v=>setEdit({...edit,nachname:v})}/>
             <Field label="E-Mail" id="r-em" value={edit.email??''} onChange={v=>setEdit({...edit,email:v})} span2 type="email"/>
             <Field label="ÖÄK-Nr." id="r-ok" value={edit.oeak_nr??''} onChange={v=>setEdit({...edit,oeak_nr:v})} span2/>
+            <div className="col-span-2 grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Anwesend von</label>
+                <input type="date" value={(edit as any).datum_von??''} onChange={e=>setEdit({...edit,datum_von:e.target.value} as any)}
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#FFBF00]"/>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Anwesend bis</label>
+                <input type="date" value={(edit as any).datum_bis??''} onChange={e=>setEdit({...edit,datum_bis:e.target.value} as any)}
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#FFBF00]"/>
+              </div>
+            </div>
           </div>
           <div className="flex gap-3 justify-end">
             <Btn variant="outline" onClick={()=>setEdit(null)}>Abbrechen</Btn>

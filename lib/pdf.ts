@@ -72,11 +72,12 @@ export function buildRechnungHTML(r: RechnungDaten): string {
 <style>
   @page { size: A4; margin: 15mm 20mm 25mm 20mm; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #111; background: white; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #111; background: white; min-height: 100vh; display: flex; flex-direction: column; } .content { flex: 1; }
   @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
 </style>
 </head>
 <body>
+<div class="content">
 
 <!-- HEADER -->
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8mm;padding-bottom:5mm;border-bottom:2px solid #FFBF00">
@@ -162,8 +163,9 @@ ${r.bezahlt ? `<div style="font-size:13px;font-weight:bold;margin:5mm 0">Ihre Za
   </div>
 </div>
 
+</div>
 <!-- FOOTER -->
-<div style="position:fixed;bottom:8mm;left:20mm;right:20mm;padding-top:4mm;border-top:1px solid #ccc;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:9px;color:#555;text-align:left">
+<div style="margin-top:auto;width:100%;padding-top:4mm;border-top:1px solid #ccc;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:9px;color:#555;text-align:left">
   <div>
     <div style="font-weight:bold;margin-bottom:3px">${A.name}</div>
     <div>${A.strasse}</div>

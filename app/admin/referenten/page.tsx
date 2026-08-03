@@ -300,7 +300,7 @@ ${anwList.length>0?`
             <div className="col-span-2">
               <p className="text-xs font-semibold text-gray-500 mb-2">Anrede</p>
               <div className="flex gap-2">
-                {(['Herr','Frau','Dr.','Prof.'] as const).map(a=>(
+                {(['Herr','Frau'] as const).map(a=>(
                   <button key={a} onClick={()=>setEdit({...edit,anrede:a})} className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition-all ${edit.anrede===a?'bg-[#FFBF00] border-[#FFBF00] text-black':'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>{a}</button>
                 ))}
               </div>

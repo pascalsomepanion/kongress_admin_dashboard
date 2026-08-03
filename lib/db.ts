@@ -161,10 +161,14 @@ export function formatDatum(von: string, bis: string): string {
 
 // Rechnungsnummer generieren: SMK-2027-001 oder SMK-S-2027-001
 export function nextRechnungsnr(existing: string[], jahr: number, isSponsoren = false): string {
-  const prefix = isSponsoren ? `SMK-S-${jahr}-` : `SMK-${jahr}-`
+  // Single sequence for ALL invoices (Teilnehmer + Sponsoren) - required by Austrian tax law
+  const prefix = `SMK-${jahr}-`
   const nums = existing
     .filter(n => n?.startsWith(prefix))
-    .map(n => parseInt(n.replace(prefix, '')) || 0)
+    .map(n => {
+      const num = n.replace(prefix, '').split('-')[0] // handle SMK-2027-001-Storno etc
+      return parseInt(num) || 0
+    })
   const next = nums.length > 0 ? Math.max(...nums) + 1 : 1
   return `${prefix}${String(next).padStart(3, '0')}`
 }

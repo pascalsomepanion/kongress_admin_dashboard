@@ -111,22 +111,22 @@ export default function AnwesenheitPage(){
 
     const buchRows=bs.map(b=>`
       <tr>
-        <td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:11px;font-weight:600;color:#111">
+        <td style="padding:4px 10px;border-bottom:1px solid #f0f0f0;font-size:9px;font-weight:600;color:#111">
           ${b.kurse.titel}${b.kurse.untertitel?`<div style="font-size:10px;color:#666;font-weight:400;font-style:italic;margin-top:2px">"${b.kurse.untertitel}"</div>`:''}
         </td>
-        <td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:11px;font-weight:600">${b.einheiten_besucht??0}</td>
-        <td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:11px;font-weight:700;color:#111">${b.dfp_erhalten??0}</td>
+        <td style="padding:4px 10px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:9px;font-weight:600">${b.einheiten_besucht??0}</td>
+        <td style="padding:4px 10px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:9px;font-weight:700;color:#111">${b.dfp_erhalten??0}</td>
       </tr>`).join('')
 
     const pflichtRows=ps.map(p=>{
       const kurs=pflichtkurse.find(k=>k.id===p.kurs_id)
       if(!kurs)return''
       return`<tr>
-        <td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:11px;font-weight:600;color:#111">
+        <td style="padding:4px 10px;border-bottom:1px solid #f0f0f0;font-size:9px;font-weight:600;color:#111">
           ${kurs.titel}${kurs.untertitel?`<div style="font-size:10px;color:#666;font-weight:400;font-style:italic;margin-top:2px">"${kurs.untertitel}"</div>`:''}
         </td>
-        <td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:11px;font-weight:600">${p.einheiten_besucht}</td>
-        <td style="padding:10px 16px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:11px;font-weight:700;color:#111">${p.dfp_erhalten}</td>
+        <td style="padding:4px 10px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:9px;font-weight:600">${p.einheiten_besucht}</td>
+        <td style="padding:4px 10px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:9px;font-weight:700;color:#111">${p.dfp_erhalten}</td>
       </tr>`}).join('')
 
     return`<!DOCTYPE html>
@@ -142,37 +142,33 @@ export default function AnwesenheitPage(){
       <div style="font-size:9px;color:#777">Österreichische Gesellschaft für Sportmedizin und Prävention</div>
     </div>
   </div>
-  <div style="text-align:right;font-size:10px;color:#555;line-height:1.7">
-    <div style="font-weight:700;color:#111">${k.name}</div>
-    <div>${ort}</div>
-    <div>${new Date(k.datum_von).toLocaleDateString('de-AT',{day:'numeric',month:'numeric',year:'numeric'})}–${new Date(k.datum_bis).toLocaleDateString('de-AT',{day:'numeric',month:'numeric',year:'numeric'})}</div>
-  </div>
+
 </div>
-<div style="text-align:center;margin-bottom:8mm">
+<div style="text-align:center;margin-bottom:5mm">
   <div style="font-size:13px;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;margin-bottom:6mm">T E I L N A H M E B E S T Ä T I G U N G</div>
 </div>
 <div style="text-align:center;margin-bottom:6mm">
   <div style="font-size:16px;font-weight:700">${t.vorname} ${t.nachname}</div>
   <div style="font-size:11px;color:#555;margin-top:3px">ÖÄK-Nr.: ${t.oeak_nr}</div>
 </div>
-<div style="text-align:center;font-size:12px;margin-bottom:8mm;line-height:2">
+<div style="text-align:center;font-size:12px;margin-bottom:5mm;line-height:2">
   hat im Rahmen des<br>
   <strong style="font-size:13px">${k.name}</strong><br>
   ${ort}, ${datum}<br>
   an folgenden Veranstaltungen teilgenommen:
 </div>
-<table style="width:100%;border-collapse:collapse;margin-bottom:8mm">
+<table style="width:100%;border-collapse:collapse;margin-bottom:5mm">
   <thead><tr style="background:#FFBF00;color:#111">
-    <th style="padding:10px 16px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase">Kurs / Veranstaltung</th>
-    <th style="padding:10px 16px;text-align:center;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;width:100px">Stunden</th>
-    <th style="padding:10px 16px;text-align:center;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;width:100px">DFP-Punkte</th>
+    <th style="padding:5px 10px;text-align:left;font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase">Kurs / Veranstaltung</th>
+    <th style="padding:5px 10px;text-align:center;font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;width:70px">Stunden</th>
+    <th style="padding:5px 10px;text-align:center;font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;width:70px">DFP-Punkte</th>
   </tr></thead>
   <tbody>
     ${buchRows}${pflichtRows}
     <tr style="background:#FFF9E6">
-      <td style="padding:12px 16px;font-weight:700;font-size:12px">Gesamt</td>
-      <td style="padding:12px 16px;text-align:center;font-weight:700;font-size:13px">${totalStunden}</td>
-      <td style="padding:12px 16px;text-align:center;font-weight:700;font-size:15px">${total}</td>
+      <td style="padding:5px 10px;font-weight:700;font-size:10px">Gesamt</td>
+      <td style="padding:5px 10px;text-align:center;font-weight:700;font-size:10px">${totalStunden}</td>
+      <td style="padding:5px 10px;text-align:center;font-weight:700;font-size:12px">${total}</td>
     </tr>
   </tbody>
 </table>
@@ -184,7 +180,7 @@ export default function AnwesenheitPage(){
     </div>
   </div>
 </div>
-<div style="margin-top:12mm">
+<div style="margin-top:8mm;margin-bottom:5mm">
   <div style="display:grid;grid-template-columns:auto 1fr;gap:12px;border:1.5px solid #333;padding:10px 14px;align-items:center">
     <div style="text-align:center">
       <div style="font-size:8px;font-weight:900;letter-spacing:0.05em;border:2px solid #111;padding:3px 6px">ÖÄK DIPLOM</div>
@@ -197,7 +193,7 @@ export default function AnwesenheitPage(){
       ${dfpId?`<div style="display:flex;justify-content:space-between"><span style="font-weight:700">DFP – ID</span><span style="font-weight:700">${dfpId}</span></div>`:''}
     </div>
   </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;margin-top:6px;font-size:8px;color:#555">
+  <div style="display:grid;grid-template-columns:1fr 1fr;margin-top:6px;padding-top:4px;border-top:1px solid #ccc;font-size:8px;color:#555">
     <div>
       <div style="font-weight:700">Prof. h.c. Univ.-Doz. Dr. Günther Neumayr</div>
       <div>Michaelsgasse 20</div>

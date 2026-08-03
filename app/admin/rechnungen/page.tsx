@@ -129,6 +129,10 @@ export default function RechnungenPage(){
     const tn=stornoGroup.tn
     await supabase.storage.from('rechnungen').upload(`${k.jahr}/${tn.nachname}_${tn.vorname}_${previewNr}.html`,new Blob([previewHtml],{type:'text/html'}),{upsert:true})
     const brutto=stornoBuchungen.reduce((s,b)=>s+b.gebuchter_preis,0)
+    // Mark buchungen as storniert
+    for(const b of stornoBuchungen){
+      await supabase.from('buchungen').update({zahlungsstatus:'storniert'}).eq('id',b.id)
+    }
     await supabase.from('rechnungen').insert({kongress_id:k.id,teilnehmer_id:stornoGroup.tnId,rechnungsnummer:previewNr,typ:'storno',anrede:'Damen und Herren',gesamtbetrag_brutto:-brutto,netto:-brutto/1.2,mwst_betrag:-(brutto-(brutto/1.2)),mwst_prozent:20,bezahlt:false,erstellt_am:new Date().toISOString()})
     setPreviewHtml(null);setStornoGroup(null);setStornoBuchungen([])
     await load(k.id);setSaving(false)
@@ -212,7 +216,7 @@ export default function RechnungenPage(){
                                     🔴 Stornieren
                                   </Btn>
                                 )}
-                                {!h.rNr&&<Btn size="sm" onClick={()=>{setAnrede('Damen und Herren');setCreating({group:g,buchungen:h.buchungen});setPreviewMode('new')}}>📄 Rechnung erstellen</Btn>}
+                                {!h.rNr&&(bezahlt?<Btn size="sm" onClick={()=>{setAnrede('Damen und Herren');setCreating({group:g,buchungen:h.buchungen});setPreviewMode('new')}}>📄 Rechnung erstellen</Btn>:<span className="text-[10px] text-gray-400 italic">Erst nach Zahlung</span>)}
                               </div>
                             </div>
                             {/* Buchungen in dieser Gruppe */}

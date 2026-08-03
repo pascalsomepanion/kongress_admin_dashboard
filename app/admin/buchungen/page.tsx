@@ -17,6 +17,7 @@ export default function ZahlungenPage(){
   const[zahlModal,setZahlModal]=useState<{buchungen:Buchung[];tn:{vorname:string;nachname:string;ist_oegsmp_mitglied:boolean};key:string}|null>(null)
   const[zahlDatum,setZahlDatum]=useState('')
   const[erinnerungSending,setErinnerungSending]=useState<number|null>(null)
+  const[erinnerungModal,setErinnerungModal]=useState<{g:TeilnehmerGruppe;html:string}|null>(null)
   const[zahlBar,setZahlBar]=useState(false)
   const[preisItems,setPreisItems]=useState<{id:number;titel:string;gebuchterPreis:number;normalPreis:number;useNormal:boolean}[]>([])
 
@@ -112,8 +113,40 @@ export default function ZahlungenPage(){
   const totalOffen=gruppen.flatMap(g=>g.buchungen).filter(b=>b.zahlungsstatus==='ausstehend').reduce((s,b)=>s+b.gebuchter_preis,0)
   const anzahlOffen=new Set(gruppen.filter(g=>g.buchungen.some(b=>b.zahlungsstatus==='ausstehend')).map(g=>g.tnId)).size
 
-  async function sendZahlungserinnerung(g:TeilnehmerGruppe){
+  function openErinnerungModal(g:TeilnehmerGruppe){
     if(!k)return
+    const offene=g.buchungen.filter(b=>b.zahlungsstatus==='ausstehend')
+    const betrag=offene.reduce((s,b)=>s+b.gebuchter_preis,0)
+    const kursRows=offene.map(b=>`<li style="padding:3px 0;color:#374151">${b.kurse.titel} — € ${b.gebuchter_preis.toFixed(2)}</li>`).join('')
+    const html=`<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+<body style="font-family:Arial,sans-serif;font-size:13px;color:#111;max-width:600px;margin:0 auto;padding:20px;line-height:1.7">
+<div style="background:#FFBF00;padding:16px 24px;border-radius:8px 8px 0 0">
+  <p style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(0,0,0,.5);margin:0 0 4px">Zahlungserinnerung</p>
+  <h1 style="font-size:16px;font-weight:800;color:#111;margin:0">${k.name} ${k.jahr}</h1>
+</div>
+<div style="border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px;padding:24px">
+  <p>Sehr geehrte/r ${g.vorname} ${g.nachname},</p><br>
+  <p>wir möchten Sie freundlich daran erinnern, dass Ihre Zahlung noch aussteht.</p><br>
+  <div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:16px;margin:16px 0">
+    <p style="font-weight:700;margin:0 0 8px">Offener Betrag: EUR ${betrag.toFixed(2)}</p>
+    <ul style="margin:0;padding-left:20px">${kursRows}</ul>
+  </div>
+  <p style="font-weight:700;margin-top:16px">Bitte überweisen Sie den Betrag auf folgendes Konto:</p>
+  <table style="margin-top:8px;font-size:12px">
+    <tr><td style="padding:3px 16px 3px 0;color:#6b7280">IBAN</td><td style="font-family:monospace;font-weight:600">${k.iban}</td></tr>
+    <tr><td style="padding:3px 16px 3px 0;color:#6b7280">BIC</td><td style="font-family:monospace;font-weight:600">${k.bic}</td></tr>
+    <tr><td style="padding:3px 16px 3px 0;color:#6b7280">Kontoinhaber</td><td style="font-weight:600">${k.kontoinhaber}</td></tr>
+    <tr><td style="padding:3px 16px 3px 0;color:#6b7280">Verwendungszweck</td><td style="font-weight:600;color:#d97706">${g.vorname} ${g.nachname}</td></tr>
+  </table>
+  <p style="margin-top:16px;color:#6b7280;font-size:12px">Bei Fragen: <a href="mailto:${k.kontakt_email}" style="color:#d97706">${k.kontakt_email}</a></p>
+  <p style="margin-top:16px">Mit sportlichen Grüßen<br><br><strong>Prof. h.c. Univ.-Doz. Dr. Günther Neumayr</strong><br>Kongresspräsident</p>
+</div></body></html>`
+    setErinnerungModal({g,html})
+  }
+
+  async function sendZahlungserinnerung(){
+    if(!erinnerungModal||!k)return
+    const{g}=erinnerungModal
     setErinnerungSending(g.tnId)
     const offene=g.buchungen.filter(b=>b.zahlungsstatus==='ausstehend')
     const betrag=offene.reduce((s,b)=>s+b.gebuchter_preis,0)
@@ -124,6 +157,7 @@ export default function ZahlungenPage(){
       iban:k.iban,bic:k.bic,kontoinhaber:k.kontoinhaber,
       kontakt_email:k.kontakt_email,
     })})
+    setErinnerungModal(null)
     setErinnerungSending(null)
   }
 
@@ -161,8 +195,8 @@ export default function ZahlungenPage(){
                       {allesBezahlt&&<Badge label="✓ Alles bezahlt" variant="green"/>}
                       {hatOffene&&<span className="text-sm font-bold text-amber-700">€ {gesamtOffen.toFixed(2)} offen</span>}
                       {gesamtBezahlt>0&&!allesBezahlt&&<span className="text-sm font-semibold text-green-700">€ {gesamtBezahlt.toFixed(2)} bezahlt</span>}
-                      {gesamtOffen>0&&<Btn size="sm" variant="outline" disabled={erinnerungSending===g.tnId} onClick={()=>sendZahlungserinnerung(g)}>
-                        {erinnerungSending===g.tnId?'Sendet…':'📧 Zahlungserinnerung'}
+                      {gesamtOffen>0&&<Btn size="sm" variant="outline" onClick={()=>openErinnerungModal(g)}>
+                        Erinnerung senden
                       </Btn>}
                     </div>
                   </div>
@@ -274,6 +308,27 @@ export default function ZahlungenPage(){
                 </Btn>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ZAHLUNGSERINNERUNG VORSCHAU */}
+      {erinnerungModal&&(
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b">
+              <div>
+                <h2 className="font-bold text-base">Zahlungserinnerung — {erinnerungModal.g.nachname} {erinnerungModal.g.vorname}</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Vorschau — bitte prüfen vor dem Senden</p>
+              </div>
+              <div className="flex gap-3">
+                <Btn variant="outline" onClick={()=>setErinnerungModal(null)}>← Schließen</Btn>
+                <Btn disabled={erinnerungSending===erinnerungModal.g.tnId} onClick={sendZahlungserinnerung}>
+                  {erinnerungSending===erinnerungModal.g.tnId?'Sendet…':'Jetzt senden'}
+                </Btn>
+              </div>
+            </div>
+            <iframe srcDoc={erinnerungModal.html} className="flex-1 w-full rounded-b-2xl" style={{minHeight:'60vh'}}/>
           </div>
         </div>
       )}

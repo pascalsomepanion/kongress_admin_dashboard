@@ -347,7 +347,7 @@ export default function AnmeldungPage(){
                 <FI label="Stadt *" id="f-ct" value={form.stadt} onChange={v=>setF('stadt',v)} error={errors.stadt}/>
               </div>
               <FI label="Land *" id="f-ld" value={form.land} onChange={v=>setF('land',v)} error={errors.land}/>
-              <FI label="ÖÄK-Nr. * (internationale Gäste: 0)" id="f-ok" value={form.oeak_nr} onChange={v=>setF('oeak_nr',v)} error={errors.oeak_nr}/>
+              <FI label="ÖÄK-Nr. * (internationale Gäste ohne ÖÄK Nr. geben bitte hier eine 0 ein!)" id="f-ok" value={form.oeak_nr} onChange={v=>setF('oeak_nr',v)} error={errors.oeak_nr}/>
               <div id="f-email"><FI label="E-Mail *" id="f-em" type="email" value={form.email} onChange={v=>{setF('email',v);setDuplikat(false)}} error={errors.email}/></div>
               {duplikat&&<div style={{background:'rgba(37,99,235,0.06)',border:'1px solid rgba(37,99,235,0.18)',borderRadius:10,padding:'12px 14px',fontSize:13,color:'#1d4ed8',lineHeight:1.6}}>Diese E-Mail ist bereits registriert. Bei Änderungswünschen: <a href={`mailto:${kongress.kontakt_email}`} style={{fontWeight:700,textDecoration:'underline'}}>{kongress.kontakt_email}</a></div>}
               <label style={{display:'flex',alignItems:'center',gap:12,padding:'12px 14px',borderRadius:10,border:`1.5px solid ${form.ist_oegsmp_mitglied?'rgba(255,200,3,0.5)':'rgba(255,255,255,0.1)'}`,background:form.ist_oegsmp_mitglied?'rgba(255,200,3,0.08)':'rgba(255,255,255,0.04)',cursor:'pointer',transition:'all 0.2s'}}>

@@ -80,9 +80,10 @@ export default function AnmeldungPage(){
     if(form.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))errs.email='Ungültige E-Mail-Adresse'
     if(selected.size===0)errs.kurse='Bitte mindestens einen Kurs auswählen'
     setErrors(errs)
+    const idMap:Record<string,string>={vorname:'f-vn',nachname:'f-nn',strasse:'f-st',hausnummer:'f-hn',postleitzahl:'f-plz',stadt:'f-ct',land:'f-ld',oeak_nr:'f-ok',email:'f-email',kurse:'f-kurse'}
     const firstErr=Object.keys(errs)[0]
     if(firstErr){
-      const el=document.getElementById(`f-${firstErr.replace('_','-')}`)??document.getElementById(`f-${firstErr.substring(0,2)}`)
+      const el=document.getElementById(idMap[firstErr]??`f-${firstErr}`)
       el?.scrollIntoView({behavior:'smooth',block:'center'})
     }
     return Object.keys(errs).length===0

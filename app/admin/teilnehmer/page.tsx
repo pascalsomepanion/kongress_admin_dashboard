@@ -47,7 +47,7 @@ export default function TeilnehmerPage(){
     }
   }
 
-  async async function save(){
+  async function save(){
     if(!edit||!k)return;setSaving(true)
     const orig=list.find(t=>t.id===edit.id)
     await supabase.from('teilnehmer').update({vorname:edit.vorname,nachname:edit.nachname,email:edit.email,strasse:edit.strasse,hausnummer:edit.hausnummer,postleitzahl:edit.postleitzahl,stadt:edit.stadt,land:edit.land,oeak_nr:edit.oeak_nr,ist_oegsmp_mitglied:edit.ist_oegsmp_mitglied}).eq('id',edit.id)

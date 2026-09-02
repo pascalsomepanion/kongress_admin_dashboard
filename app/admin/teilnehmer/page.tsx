@@ -63,7 +63,9 @@ export default function TeilnehmerPage(){
         }
       }
     }
-    setList(prev=>prev.map(t=>t.id===edit.id?edit:t));setEdit(null);setSaving(false)
+    const{data:fresh}=await supabase.from('teilnehmer').select('*').eq('kongress_id',k.id).order('nachname')
+    setList((fresh as Teilnehmer[])??[])
+    setEdit(null);setSaving(false)
   }
 
   async function del(id:number){

@@ -79,7 +79,13 @@ export default function AnmeldungPage(){
     req.forEach(([f,msg])=>{if(!(form[f] as string).trim())errs[f]=msg})
     if(form.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))errs.email='Ungültige E-Mail-Adresse'
     if(selected.size===0)errs.kurse='Bitte mindestens einen Kurs auswählen'
-    setErrors(errs);return Object.keys(errs).length===0
+    setErrors(errs)
+    const firstErr=Object.keys(errs)[0]
+    if(firstErr){
+      const el=document.getElementById(`f-${firstErr.replace('_','-')}`)??document.getElementById(`f-${firstErr.substring(0,2)}`)
+      el?.scrollIntoView({behavior:'smooth',block:'center'})
+    }
+    return Object.keys(errs).length===0
   }
 
   async function goConfirm(){
@@ -515,7 +521,7 @@ function FI({label,id,value,onChange,type='text',error}:{label:string;id:string;
     <div>
       <label htmlFor={id} style={{display:'block',fontSize:11,fontWeight:600,color:'rgba(255,255,255,0.5)',marginBottom:6,letterSpacing:'0.04em'}}>{label}</label>
       <input id={id} type={type} value={value} onChange={e=>onChange(e.target.value)} autoComplete="off" className="fi"
-        style={{width:'100%',background:'rgba(255,255,255,0.08)',border:'1.5px solid rgba(255,255,255,0.15)',borderRadius:10,padding:'10px 13px',fontSize:14,color:'rgba(255,255,255,0.9)',outline:'none',fontFamily:'Plus Jakarta Sans, sans-serif',transition:'all 0.2s'}}
+        style={{width:'100%',background:'rgba(255,255,255,0.08)',border:`1.5px solid ${error?'rgba(239,68,68,0.7)':'rgba(255,255,255,0.15)'}`,borderRadius:10,padding:'10px 13px',fontSize:14,color:'rgba(255,255,255,0.9)',outline:'none',fontFamily:'Plus Jakarta Sans, sans-serif',transition:'all 0.2s'}}
       />
       {error&&<p style={{fontSize:11,color:'#dc2626',marginTop:4,fontWeight:500}}>{error}</p>}
     </div>

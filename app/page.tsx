@@ -80,11 +80,14 @@ export default function AnmeldungPage(){
     if(form.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))errs.email='Ungültige E-Mail-Adresse'
     if(selected.size===0)errs.kurse='Bitte mindestens einen Kurs auswählen'
     setErrors(errs)
-    const idMap:Record<string,string>={vorname:'f-vn',nachname:'f-nn',strasse:'f-st',hausnummer:'f-hn',postleitzahl:'f-plz',stadt:'f-ct',land:'f-ld',oeak_nr:'f-ok',email:'f-email',kurse:'f-kurse'}
-    const firstErr=Object.keys(errs)[0]
-    if(firstErr){
-      const el=document.getElementById(idMap[firstErr]??`f-${firstErr}`)
-      el?.scrollIntoView({behavior:'smooth',block:'center'})
+    const idMap:Record<string,string>={vorname:'f-vorname',nachname:'f-nachname',strasse:'f-strasse',hausnummer:'f-hausnummer',postleitzahl:'f-postleitzahl',stadt:'f-stadt',land:'f-land',oeak_nr:'f-oeak_nr',email:'f-email',kurse:'f-kurse'}
+    const firstErrKey=Object.keys(errs)[0]
+    if(firstErrKey){
+      setTimeout(()=>{
+        const targetId=idMap[firstErrKey]??`f-${firstErrKey}`
+        const el=document.getElementById(targetId)
+        if(el){el.scrollIntoView({behavior:'smooth',block:'center'})}
+      },50)
     }
     return Object.keys(errs).length===0
   }
@@ -342,19 +345,19 @@ export default function AnmeldungPage(){
             </div>
             <div style={{padding:24,display:'flex',flexDirection:'column' as const,gap:12}}>
               <div className="grid2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
-                <FI label="Vorname *" id="f-vn" value={form.vorname} onChange={v=>setF('vorname',v)} error={errors.vorname}/>
-                <FI label="Nachname *" id="f-nn" value={form.nachname} onChange={v=>setF('nachname',v)} error={errors.nachname}/>
+                <div id="f-vorname"><FI label="Vorname *" id="f-vn" value={form.vorname} onChange={v=>setF('vorname',v)} error={errors.vorname}/></div>
+                <div id="f-nachname"><FI label="Nachname *" id="f-nn" value={form.nachname} onChange={v=>setF('nachname',v)} error={errors.nachname}/></div>
               </div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 90px',gap:12}}>
-                <FI label="Straße *" id="f-st" value={form.strasse} onChange={v=>setF('strasse',v)} error={errors.strasse}/>
-                <FI label="Nr. *" id="f-hn" value={form.hausnummer} onChange={v=>setF('hausnummer',v)} error={errors.hausnummer}/>
+                <div id="f-strasse"><FI label="Straße *" id="f-st" value={form.strasse} onChange={v=>setF('strasse',v)} error={errors.strasse}/></div>
+                <div id="f-hausnummer"><FI label="Nr. *" id="f-hn" value={form.hausnummer} onChange={v=>setF('hausnummer',v)} error={errors.hausnummer}/></div>
               </div>
               <div style={{display:'grid',gridTemplateColumns:'100px 1fr',gap:12}}>
-                <FI label="PLZ *" id="f-plz" value={form.postleitzahl} onChange={v=>setF('postleitzahl',v)} error={errors.postleitzahl}/>
-                <FI label="Stadt *" id="f-ct" value={form.stadt} onChange={v=>setF('stadt',v)} error={errors.stadt}/>
+                <div id="f-postleitzahl"><FI label="PLZ *" id="f-plz" value={form.postleitzahl} onChange={v=>setF('postleitzahl',v)} error={errors.postleitzahl}/></div>
+                <div id="f-stadt"><FI label="Stadt *" id="f-ct" value={form.stadt} onChange={v=>setF('stadt',v)} error={errors.stadt}/></div>
               </div>
-              <FI label="Land *" id="f-ld" value={form.land} onChange={v=>setF('land',v)} error={errors.land}/>
-              <FI label="ÖÄK-Nr. * (internationale Gäste ohne ÖÄK Nr. geben bitte hier eine 0 ein!)" id="f-ok" value={form.oeak_nr} onChange={v=>setF('oeak_nr',v)} error={errors.oeak_nr}/>
+              <div id="f-land"><FI label="Land *" id="f-ld" value={form.land} onChange={v=>setF('land',v)} error={errors.land}/></div>
+              <div id="f-oeak_nr"><FI label="ÖÄK-Nr. * (internationale Gäste ohne ÖÄK Nr. geben bitte hier eine 0 ein!)" id="f-ok" value={form.oeak_nr} onChange={v=>setF('oeak_nr',v)} error={errors.oeak_nr}/></div>
               <div id="f-email"><FI label="E-Mail *" id="f-em" type="email" value={form.email} onChange={v=>{setF('email',v);setDuplikat(false)}} error={errors.email}/></div>
               {duplikat&&<div style={{background:'rgba(37,99,235,0.06)',border:'1px solid rgba(37,99,235,0.18)',borderRadius:10,padding:'12px 14px',fontSize:13,color:'#1d4ed8',lineHeight:1.6}}>Diese E-Mail ist bereits registriert. Bei Änderungswünschen: <a href={`mailto:${kongress.kontakt_email}`} style={{fontWeight:700,textDecoration:'underline'}}>{kongress.kontakt_email}</a></div>}
               <label style={{display:'flex',alignItems:'center',gap:12,padding:'12px 14px',borderRadius:10,border:`1.5px solid ${form.ist_oegsmp_mitglied?'rgba(255,200,3,0.5)':'rgba(255,255,255,0.1)'}`,background:form.ist_oegsmp_mitglied?'rgba(255,200,3,0.08)':'rgba(255,255,255,0.04)',cursor:'pointer',transition:'all 0.2s'}}>
@@ -375,7 +378,7 @@ export default function AnmeldungPage(){
             </div>
             <div style={{padding:24}}>
               {konflikt&&<div style={{background:'rgba(239,68,68,0.06)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:10,padding:'10px 14px',fontSize:13,color:'#dc2626',marginBottom:14}}>⚠ {konflikt}</div>}
-              {errors.kurse&&<div style={{background:'rgba(239,68,68,0.06)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:10,padding:'10px 14px',fontSize:13,color:'#dc2626',marginBottom:14}}>⚠ {errors.kurse}</div>}
+              <div id="f-kurse">{errors.kurse&&<div style={{background:'rgba(239,68,68,0.06)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:10,padding:'10px 14px',fontSize:13,color:'#dc2626',marginBottom:14}}>⚠ {errors.kurse}</div>}</div>
               <p style={{fontSize:9,fontWeight:700,letterSpacing:'0.15em',textTransform:'uppercase' as const,color:'rgba(255,255,255,0.4)',marginBottom:12}}>Blockkurse</p>
               {blockKurse.map(k=><KursRow key={k.id} kurs={k} selected={selected.has(k.id)} preis={getPreis(k,form.ist_oegsmp_mitglied,frueh)} onToggle={()=>toggleKurs(k)}/>)}
               <div style={{borderTop:'1px solid rgba(255,255,255,0.08)',margin:'16px 0'}}/>

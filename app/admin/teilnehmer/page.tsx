@@ -47,9 +47,22 @@ export default function TeilnehmerPage(){
     }
   }
 
-  async function save(){
-    if(!edit)return;setSaving(true)
+  async async function save(){
+    if(!edit||!k)return;setSaving(true)
+    const orig=list.find(t=>t.id===edit.id)
     await supabase.from('teilnehmer').update({vorname:edit.vorname,nachname:edit.nachname,email:edit.email,strasse:edit.strasse,hausnummer:edit.hausnummer,postleitzahl:edit.postleitzahl,stadt:edit.stadt,land:edit.land,oeak_nr:edit.oeak_nr,ist_oegsmp_mitglied:edit.ist_oegsmp_mitglied}).eq('id',edit.id)
+    // If membership changed, update prices of ausstehend buchungen
+    if(orig&&orig.ist_oegsmp_mitglied!==edit.ist_oegsmp_mitglied){
+      const{data:buchungen}=await supabase.from('buchungen').select('id,kurs_id,zahlungsstatus').eq('teilnehmer_id',edit.id).eq('kongress_id',k.id).neq('zahlungsstatus','storniert')
+      const frueh=isFruehbucher(k)
+      for(const b of buchungen??[]){
+        const kurs=kurse.find(kk=>kk.id===b.kurs_id)
+        if(kurs){
+          const neuerPreis=getPreis(kurs,edit.ist_oegsmp_mitglied,frueh)
+          await supabase.from('buchungen').update({gebuchter_preis:neuerPreis}).eq('id',b.id)
+        }
+      }
+    }
     setList(prev=>prev.map(t=>t.id===edit.id?edit:t));setEdit(null);setSaving(false)
   }
 

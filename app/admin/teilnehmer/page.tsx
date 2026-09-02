@@ -63,6 +63,11 @@ export default function TeilnehmerPage(){
         }
       }
     }
+    // Reload buchungen for this teilnehmer if open
+    if(tnBuchungen[edit.id]){
+      const{data:freshB}=await supabase.from('buchungen').select('id,kurs_id,gebuchter_preis,zahlungsstatus,rechnungsnummer,kurse(titel,wochentag_datum,uhrzeit)').eq('teilnehmer_id',edit.id)
+      setTnBuchungen(prev=>({...prev,[edit.id]:(freshB as unknown as Buchung[])??[]}))
+    }
     const{data:fresh}=await supabase.from('teilnehmer').select('*').eq('kongress_id',k.id).order('nachname')
     setList((fresh as Teilnehmer[])??[])
     setEdit(null);setSaving(false)
